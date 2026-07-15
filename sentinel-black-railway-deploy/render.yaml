@@ -1,0 +1,46 @@
+services:
+  # ── Backend API ─────────────────────────────────────────────────────────────
+  - type: web
+    name: sentinel-black-api
+    runtime: node
+    rootDir: .
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: node dist/server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8000
+      - key: CORS_ORIGIN
+        sync: false          # Set to your frontend URL after first deploy
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sentinel-black-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true  # Render generates a strong random secret
+      - key: UPLOAD_DIR
+        value: ./uploads
+      - key: MAX_FILE_SIZE_MB
+        value: "100"
+
+  # ── Frontend ────────────────────────────────────────────────────────────────
+  - type: web
+    name: sentinel-black-frontend
+    runtime: node
+    rootDir: frontend
+    buildCommand: npm install && NEXT_PUBLIC_API_BASE=/api-backend npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: NEXT_PUBLIC_API_BASE
+        value: /api-backend
+
+databases:
+  - name: sentinel-black-db
+    databaseName: sentinel_black
+    user: sentinel
