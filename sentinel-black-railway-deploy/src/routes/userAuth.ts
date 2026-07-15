@@ -1,6 +1,6 @@
 import { Router } from "express";
+import prisma from "../prismaClient";
 import bcrypt from "bcryptjs";
-import User from "../models/User";
 
 const router = Router();
 
@@ -15,7 +15,10 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Missing email or password" });
     }
 
-    const user = await User.findOne({ email });
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -28,7 +31,7 @@ router.post("/login", async (req, res) => {
     return res.json({
       success: true,
       user: {
-        id: user._id,
+        id: user.id,
         email: user.email,
       },
     });
@@ -49,22 +52,27 @@ router.post("/create", async (req, res) => {
       return res.status(400).json({ error: "Missing email or password" });
     }
 
-    const exists = await User.findOne({ email });
+    const exists = await prisma.user.findUnique({
+      where: { email },
+    });
+
     if (exists) {
       return res.status(409).json({ error: "Email already exists" });
     }
 
     const hashed = await bcrypt.hash(password, 10);
 
-    const newUser = await User.create({
-      email,
-      password: hashed,
+    const newUser = await prisma.user.create({
+      data: {
+        email,
+        password: hashed,
+      },
     });
 
     return res.json({
       success: true,
       user: {
-        id: newUser._id,
+        id: newUser.id,
         email: newUser.email,
       },
     });
