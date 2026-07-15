@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 const router = Router();
 
 /**
- * USER LOGIN
+ * ADMIN LOGIN (actually user login with role)
  */
 router.post("/login", async (req, res) => {
   try {
@@ -15,7 +15,6 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Missing email or password" });
     }
 
-    // Prisma lookup
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -34,23 +33,24 @@ router.post("/login", async (req, res) => {
       user: {
         id: user.id,
         email: user.email,
+        name: user.name,
       },
     });
   } catch (err) {
-    console.error("USER LOGIN ERROR:", err);
+    console.error("AUTH LOGIN ERROR:", err);
     return res.status(500).json({ error: "Server error" });
   }
 });
 
 /**
- * USER ACCOUNT CREATION
+ * ADMIN CREATE (actually user create with required name)
  */
 router.post("/create", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, name } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: "Missing email or password" });
+    if (!email || !password || !name) {
+      return res.status(400).json({ error: "Missing email, password, or name" });
     }
 
     const exists = await prisma.user.findUnique({
@@ -67,6 +67,7 @@ router.post("/create", async (req, res) => {
       data: {
         email,
         password: hashed,
+        name,
       },
     });
 
@@ -75,10 +76,11 @@ router.post("/create", async (req, res) => {
       user: {
         id: newUser.id,
         email: newUser.email,
+        name: newUser.name,
       },
     });
   } catch (err) {
-    console.error("USER CREATE ERROR:", err);
+    console.error("AUTH CREATE ERROR:", err);
     return res.status(500).json({ error: "Server error" });
   }
 });
