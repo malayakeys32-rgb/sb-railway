@@ -1,13 +1,11 @@
 import { Router } from "express";
 import prisma from "../prismaClient";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { config } from "../config";
 
 const router = Router();
 
 /**
- * ADMIN LOGIN
+ * USER LOGIN
  */
 router.post("/login", async (req, res) => {
   try {
@@ -17,51 +15,45 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Missing email or password" });
     }
 
-    const admin = await prisma.admin.findUnique({
+    const user = await prisma.user.findUnique({
       where: { email },
     });
 
-    if (!admin) {
-      return res.status(404).json({ error: "Admin not found" });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
 
-    const match = await bcrypt.compare(password, admin.password);
+    const match = await bcrypt.compare(password, user.password);
     if (!match) {
       return res.status(401).json({ error: "Invalid password" });
     }
 
-    const token = jwt.sign(
-      { id: admin.id, email: admin.email, role: "admin" },
-      config.jwtSecret,
-      { expiresIn: "7d" }
-    );
-
     return res.json({
       success: true,
-      token,
-      admin: {
-        id: admin.id,
-        email: admin.email,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
       },
     });
   } catch (err) {
-    console.error("ADMIN LOGIN ERROR:", err);
+    console.error("USER LOGIN ERROR:", err);
     return res.status(500).json({ error: "Server error" });
   }
 });
 
 /**
- * ADMIN ACCOUNT CREATION
+ * USER ACCOUNT CREATION
  */
 router.post("/create", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, name } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: "Missing email or password" });
+    if (!email || !password || !name) {
+      return res.status(400).json({ error: "Missing email, password, or name" });
     }
 
-    const exists = await prisma.admin.findUnique({
+    const exists = await prisma.user.findUnique({
       where: { email },
     });
 
@@ -71,29 +63,24 @@ router.post("/create", async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
 
-    const newAdmin = await prisma.admin.create({
+    const newUser = await prisma.user.create({
       data: {
         email,
         password: hashed,
+        name,
       },
     });
-
-    const token = jwt.sign(
-      { id: newAdmin.id, email: newAdmin.email, role: "admin" },
-      config.jwtSecret,
-      { expiresIn: "7d" }
-    );
 
     return res.json({
       success: true,
-      token,
-      admin: {
-        id: newAdmin.id,
-        email: newAdmin.email,
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
       },
     });
   } catch (err) {
-    console.error("ADMIN CREATE ERROR:", err);
+    console.error("USER CREATE ERROR:", err);
     return res.status(500).json({ error: "Server error" });
   }
 });
