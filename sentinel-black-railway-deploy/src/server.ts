@@ -12,6 +12,7 @@ import incidentRoutes from "./routes/incidents";
 import timelineRoutes from "./routes/timeline";
 import patternRoutes from "./routes/patterns";
 import sharingRoutes from "./routes/sharing";
+import userAuthRoutes from "./routes/userAuth";
 
 const FALLBACK_JWT = "fallback_dev_secret";
 const jwtConfigured =
