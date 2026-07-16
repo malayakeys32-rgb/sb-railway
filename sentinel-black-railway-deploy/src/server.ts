@@ -30,6 +30,10 @@ app.get("/", (req, res) => {
   res.json({ status: "SB Railway Backend Running" });
 });
 
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
