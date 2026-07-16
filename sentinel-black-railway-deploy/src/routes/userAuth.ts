@@ -1,12 +1,14 @@
 import { Router } from "express";
-import prisma from "../prismaClient";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const router = Router();
 
-/**
- * USER LOGIN
- */
+// Railway environment variables:
+// ADMIN_EMAIL
+// ADMIN_PASSWORD_HASH
+// JWT_SECRET
+
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -15,25 +17,29 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Missing email or password" });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
+    if (email !== process.env.ADMIN_EMAIL) {
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const match = await bcrypt.compare(password, user.password);
+    const match = await bcrypt.compare(password, process.env.ADMIN_PASSWORD_HASH!);
     if (!match) {
-      return res.status(401).json({ error: "Invalid password" });
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    return res.json({
-      success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
+    const token = jwt.sign(
+      { email },
+      process.env.JWT_SECRET!,
+      { expiresIn: "2h" }
+    );
+
+    return res.json({ token });
+  } catch (err) {
+    console.error("Login error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+export default router;
       },
     });
   } catch (err) {
