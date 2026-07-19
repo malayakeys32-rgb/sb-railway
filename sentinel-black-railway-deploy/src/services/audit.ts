@@ -1,1 +1,28 @@
-import prisma from \"../prismaClient\";\n\nexport async function logAudit(\n  userId: string,\n  action: string,\n  resource: string,\n  resourceId: string | null,\n  metadata?: Record<string, any>,\n  ipAddress?: string\n): Promise<void> {\n  try {\n    await prisma.auditLog.create({\n      data: {\n        userId,\n        action,\n        resource,\n        resourceId,\n        metadata: metadata || {},\n        ipAddress,\n      },\n    });\n  } catch (err) {\n    console.error(\"Failed to log audit event:\", err);\n  }\n}\n\nexport default { logAudit };\n
+import prisma from "../prismaClient";
+
+export async function logAudit(
+  userId: string,
+  action: string,
+  resource: string,
+  resourceId: string | null,
+  metadata?: Record<string, any>,
+  ipAddress?: string
+): Promise<void> {
+  try {
+    await prisma.auditLog.create({
+      data: {
+        userId,
+        action,
+        resource,
+        resourceId,
+        metadata: metadata || {},
+        ipAddress,
+      },
+    });
+  } catch (err) {
+    console.error("Failed to log audit event:", err);
+  }
+}
+
+export default { logAudit };
+

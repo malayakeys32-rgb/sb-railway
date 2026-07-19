@@ -1,1 +1,33 @@
-import { Request, Response, NextFunction } from \"express\";\nimport jwt from \"jsonwebtoken\";\nimport { config } from \"../config\";\nimport { Role } from \"@prisma/client\";\n\nexport interface AdminRequest extends Request {\n  user?: {\n    userId: string;\n    email: string;\n    role: Role;\n  };\n}\n\nexport async function adminAuthenticate(req: AdminRequest, res: Response, next: NextFunction): Promise<void> {\n  try {\n    const token = req.headers.authorization?.split(\" \")[1];\n    if (!token) { res.status(401).json({ error: \"No token provided\" }); return; }\n\n    const decoded = jwt.verify(token, config.jwtSecret) as any;\n    req.user = decoded;\n\n    if (req.user.role !== \"ADMIN\") {\n      res.status(403).json({ error: \"Admin access required\" });\n      return;\n    }\n    next();\n  } catch (err) {\n    res.status(401).json({ error: \"Invalid token\" });\n  }\n}\n\nexport default adminAuthenticate;\n
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+import { config } from "../config";
+import { Role } from "@prisma/client";
+
+export interface AdminRequest extends Request {
+  user?: {
+    userId: string;
+    email: string;
+    role: Role;
+  };
+}
+
+export async function adminAuthenticate(req: AdminRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) { res.status(401).json({ error: "No token provided" }); return; }
+
+    const decoded = jwt.verify(token, config.jwtSecret) as any;
+    req.user = decoded;
+
+    if (req.user.role !== "ADMIN") {
+      res.status(403).json({ error: "Admin access required" });
+      return;
+    }
+    next();
+  } catch (err) {
+    res.status(401).json({ error: "Invalid token" });
+  }
+}
+
+export default adminAuthenticate;
+
