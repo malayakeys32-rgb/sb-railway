@@ -1,1 +1,198 @@
-\"use client\";\nimport { useEffect, useState } from \"react\";\nimport { useRouter } from \"next/navigation\";\nimport axios from \"axios\";\n\nconst API_BASE = process.env.NEXT_PUBLIC_API_URL || \"http://localhost:3001\";\n\ninterface DashboardData {\n  stats: {\n    totalUsers: number;\n    totalIncidents: number;\n    totalEvidence: number;\n  };\n  recentAuditLogs: Array<{\n    id: string;\n    action: string;\n    resource: string;\n    userId: string;\n    user: { email: string; name: string };\n    createdAt: string;\n  }>;\n}\n\ninterface User {\n  id: string;\n  email: string;\n  name: string;\n  role: string;\n  mfaEnabled: boolean;\n  createdAt: string;\n}\n\nexport default function AdminDashboard() {\n  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);\n  const [users, setUsers] = useState<User[]>([]);\n  const [loading, setLoading] = useState(true);\n  const [tab, setTab] = useState<\"overview\" | \"users\" | \"logs\">(\"overview\");\n  const [currentUser, setCurrentUser] = useState<any>(null);\n  const router = useRouter();\n\n  useEffect(() => {\n    const token = localStorage.getItem(\"token\");\n    const user = localStorage.getItem(\"user\");\n\n    if (!token || !user) {\n      router.push(\"/admin/login\");\n      return;\n    }\n\n    setCurrentUser(JSON.parse(user));\n    fetchDashboardData(token);\n  }, [router]);\n\n  async function fetchDashboardData(token: string) {\n    try {\n      const [dashRes, usersRes] = await Promise.all([\n        axios.get(`${API_BASE}/auth/admin/dashboard`, {\n          headers: { Authorization: `Bearer ${token}` },\n        }),\n        axios.get(`${API_BASE}/auth/admin/users`, {\n          headers: { Authorization: `Bearer ${token}` },\n        }),\n      ]);\n      setDashboardData(dashRes.data);\n      setUsers(usersRes.data);\n    } catch (err) {\n      console.error(err);\n      localStorage.removeItem(\"token\");\n      router.push(\"/admin/login\");\n    } finally {\n      setLoading(false);\n    }\n  }\n\n  async function handleLogout() {\n    localStorage.removeItem(\"token\");\n    localStorage.removeItem(\"user\");\n    router.push(\"/admin/login\");\n  }\n\n  if (loading) {\n    return (\n      <div style={{ minHeight: \"100vh\", display: \"flex\", alignItems: \"center\", justifyContent: \"center\", background: \"var(--bg)\" }}>\n        <div style={{ color: \"var(--text-dim)\" }}>Loading admin panel…</div>\n      </div>\n    );\n  }\n\n  return (\n    <div style={{ minHeight: \"100vh\", background: \"var(--bg)\", padding: \"2rem\", color: \"var(--text)\" }}>\n      {/* Header */}\n      <div style={{ display: \"flex\", justifyContent: \"space-between\", alignItems: \"center\", marginBottom: \"2rem\" }}>\n        <h1 style={{ fontSize: \"2rem\", fontWeight: 700 }}>Admin Dashboard</h1>\n        <div style={{ display: \"flex\", gap: \"1rem\", alignItems: \"center\" }}>\n          <span style={{ fontSize: \"0.9rem\", color: \"var(--text-dim)\" }}>{currentUser?.email}</span>\n          <button className=\"btn btn-red\" onClick={handleLogout} style={{ padding: \"0.5rem 1rem\" }}>\n            Logout\n          </button>\n        </div>\n      </div>\n\n      {/* Tabs */}\n      <div style={{ display: \"flex\", gap: \"1rem\", marginBottom: \"2rem\", borderBottom: \"1px solid var(--border)\" }}>\n        {([\"overview\", \"users\", \"logs\"] as const).map((t) => (\n          <button\n            key={t}\n            onClick={() => setTab(t)}\n            style={{\n              padding: \"0.75rem 1.5rem\",\n              background: \"none\",\n              border: \"none\",\n              borderBottom: tab === t ? \"2px solid var(--red)\" : \"none\",\n              color: tab === t ? \"var(--red)\" : \"var(--text-dim)\",\n              cursor: \"pointer\",\n              fontSize: \"0.95rem\",\n              fontWeight: tab === t ? 700 : 400,\n              transition: \"all 0.15s\",\n            }}\n          >\n            {t.charAt(0).toUpperCase() + t.slice(1)}\n          </button>\n        ))}\n      </div>\n\n      {/* Overview Tab */}\n      {tab === \"overview\" && dashboardData && (\n        <div style={{ display: \"grid\", gridTemplateColumns: \"repeat(auto-fit, minmax(250px, 1fr))\", gap: \"1.5rem\" }}>\n          <div className=\"card\" style={{ padding: \"1.5rem\", border: \"1px solid var(--border)\" }}>\n            <p style={{ color: \"var(--text-dim)\", fontSize: \"0.85rem\", marginBottom: \"0.5rem\" }}>TOTAL USERS</p>\n            <p style={{ fontSize: \"2rem\", fontWeight: 700 }}>{dashboardData.stats.totalUsers}</p>\n          </div>\n          <div className=\"card\" style={{ padding: \"1.5rem\", border: \"1px solid var(--border)\" }}>\n            <p style={{ color: \"var(--text-dim)\", fontSize: \"0.85rem\", marginBottom: \"0.5rem\" }}>INCIDENTS</p>\n            <p style={{ fontSize: \"2rem\", fontWeight: 700 }}>{dashboardData.stats.totalIncidents}</p>\n          </div>\n          <div className=\"card\" style={{ padding: \"1.5rem\", border: \"1px solid var(--border)\" }}>\n            <p style={{ color: \"var(--text-dim)\", fontSize: \"0.85rem\", marginBottom: \"0.5rem\" }}>EVIDENCE ITEMS</p>\n            <p style={{ fontSize: \"2rem\", fontWeight: 700 }}>{dashboardData.stats.totalEvidence}</p>\n          </div>\n        </div>\n      )}\n\n      {/* Users Tab */}\n      {tab === \"users\" && (\n        <div className=\"card\" style={{ border: \"1px solid var(--border)\", overflowX: \"auto\" }}>\n          <table style={{ width: \"100%\", borderCollapse: \"collapse\" }}>\n            <thead>\n              <tr style={{ borderBottom: \"1px solid var(--border)\" }}>\n                <th style={{ padding: \"1rem\", textAlign: \"left\", fontWeight: 700, color: \"var(--text-dim)\", fontSize: \"0.85rem\" }}>EMAIL</th>\n                <th style={{ padding: \"1rem\", textAlign: \"left\", fontWeight: 700, color: \"var(--text-dim)\", fontSize: \"0.85rem\" }}>NAME</th>\n                <th style={{ padding: \"1rem\", textAlign: \"left\", fontWeight: 700, color: \"var(--text-dim)\", fontSize: \"0.85rem\" }}>ROLE</th>\n                <th style={{ padding: \"1rem\", textAlign: \"left\", fontWeight: 700, color: \"var(--text-dim)\", fontSize: \"0.85rem\" }}>MFA</th>\n                <th style={{ padding: \"1rem\", textAlign: \"left\", fontWeight: 700, color: \"var(--text-dim)\", fontSize: \"0.85rem\" }}>JOINED</th>\n              </tr>\n            </thead>\n            <tbody>\n              {users.map((user) => (\n                <tr key={user.id} style={{ borderBottom: \"1px solid var(--border)\" }}>\n                  <td style={{ padding: \"1rem\" }}>{user.email}</td>\n                  <td style={{ padding: \"1rem\" }}>{user.name}</td>\n                  <td style={{ padding: \"1rem\" }}>\n                    <span style={{ background: user.role === \"ADMIN\" ? \"rgba(200,0,26,0.2)\" : \"rgba(100,150,200,0.2)\", padding: \"0.25rem 0.75rem\", borderRadius: \"4px\", fontSize: \"0.8rem\", fontWeight: 600 }}>\n                      {user.role}\n                    </span>\n                  </td>\n                  <td style={{ padding: \"1rem\" }}>{user.mfaEnabled ? \"✓\" : \"–\"}</td>\n                  <td style={{ padding: \"1rem\", color: \"var(--text-dim)\", fontSize: \"0.85rem\" }}>{new Date(user.createdAt).toLocaleDateString()}</td>\n                </tr>\n              ))}\n            </tbody>\n          </table>\n        </div>\n      )}\n\n      {/* Audit Logs Tab */}\n      {tab === \"logs\" && dashboardData && (\n        <div className=\"card\" style={{ border: \"1px solid var(--border)\", overflowX: \"auto\" }}>\n          <table style={{ width: \"100%\", borderCollapse: \"collapse\" }}>\n            <thead>\n              <tr style={{ borderBottom: \"1px solid var(--border)\" }}>\n                <th style={{ padding: \"1rem\", textAlign: \"left\", fontWeight: 700, color: \"var(--text-dim)\", fontSize: \"0.85rem\" }}>ACTION</th>\n                <th style={{ padding: \"1rem\", textAlign: \"left\", fontWeight: 700, color: \"var(--text-dim)\", fontSize: \"0.85rem\" }}>USER</th>\n                <th style={{ padding: \"1rem\", textAlign: \"left\", fontWeight: 700, color: \"var(--text-dim)\", fontSize: \"0.85rem\" }}>RESOURCE</th>\n                <th style={{ padding: \"1rem\", textAlign: \"left\", fontWeight: 700, color: \"var(--text-dim)\", fontSize: \"0.85rem\" }}>TIME</th>\n              </tr>\n            </thead>\n            <tbody>\n              {dashboardData.recentAuditLogs.map((log) => (\n                <tr key={log.id} style={{ borderBottom: \"1px solid var(--border)\" }}>\n                  <td style={{ padding: \"1rem\", fontWeight: 600 }}>{log.action}</td>\n                  <td style={{ padding: \"1rem\" }}>{log.user?.email || \"–\"}</td>\n                  <td style={{ padding: \"1rem\", color: \"var(--text-dim)\", fontSize: \"0.85rem\" }}>{log.resource}</td>\n                  <td style={{ padding: \"1rem\", color: \"var(--text-dim)\", fontSize: \"0.85rem\" }}>{new Date(log.createdAt).toLocaleString()}</td>\n                </tr>\n              ))}\n            </tbody>\n          </table>\n        </div>\n      )}\n    </div>\n  );\n}\n
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+interface DashboardData {
+  stats: {
+    totalUsers: number;
+    totalIncidents: number;
+    totalEvidence: number;
+  };
+  recentAuditLogs: Array<{
+    id: string;
+    action: string;
+    resource: string;
+    userId: string;
+    user: { email: string; name: string };
+    createdAt: string;
+  }>;
+}
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  mfaEnabled: boolean;
+  createdAt: string;
+}
+
+export default function AdminDashboard() {
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<"overview" | "users" | "logs">("overview");
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const user = localStorage.getItem("user");
+
+    if (!token || !user) {
+      router.push("/admin/login");
+      return;
+    }
+
+    setCurrentUser(JSON.parse(user));
+    fetchDashboardData(token);
+  }, [router]);
+
+  async function fetchDashboardData(token: string) {
+    try {
+      const [dashRes, usersRes] = await Promise.all([
+        axios.get(`${API_BASE}/auth/admin/dashboard`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(`${API_BASE}/auth/admin/users`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+      setDashboardData(dashRes.data);
+      setUsers(usersRes.data);
+    } catch (err) {
+      console.error(err);
+      localStorage.removeItem("token");
+      router.push("/admin/login");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleLogout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push("/admin/login");
+  }
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)" }}>
+        <div style={{ color: "var(--text-dim)" }}>Loading admin panel…</div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ minHeight: "100vh", background: "var(--bg)", padding: "2rem", color: "var(--text)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+        <h1 style={{ fontSize: "2rem", fontWeight: 700 }}>Admin Dashboard</h1>
+        <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+          <span style={{ fontSize: "0.9rem", color: "var(--text-dim)" }}>{currentUser?.email}</span>
+          <button className="btn btn-red" onClick={handleLogout} style={{ padding: "0.5rem 1rem" }}>
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", borderBottom: "1px solid var(--border)" }}>
+        {(["overview", "users", "logs"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            style={{
+              padding: "0.75rem 1.5rem",
+              background: "none",
+              border: "none",
+              borderBottom: tab === t ? "2px solid var(--red)" : "none",
+              color: tab === t ? "var(--red)" : "var(--text-dim)",
+              cursor: "pointer",
+              fontSize: "0.95rem",
+              fontWeight: tab === t ? 700 : 400,
+              transition: "all 0.15s",
+            }}
+          >
+            {t.charAt(0).toUpperCase() + t.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {tab === "overview" && dashboardData && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1.5rem" }}>
+          <div className="card" style={{ padding: "1.5rem", border: "1px solid var(--border)" }}>
+            <p style={{ color: "var(--text-dim)", fontSize: "0.85rem", marginBottom: "0.5rem" }}>TOTAL USERS</p>
+            <p style={{ fontSize: "2rem", fontWeight: 700 }}>{dashboardData.stats.totalUsers}</p>
+          </div>
+          <div className="card" style={{ padding: "1.5rem", border: "1px solid var(--border)" }}>
+            <p style={{ color: "var(--text-dim)", fontSize: "0.85rem", marginBottom: "0.5rem" }}>INCIDENTS</p>
+            <p style={{ fontSize: "2rem", fontWeight: 700 }}>{dashboardData.stats.totalIncidents}</p>
+          </div>
+          <div className="card" style={{ padding: "1.5rem", border: "1px solid var(--border)" }}>
+            <p style={{ color: "var(--text-dim)", fontSize: "0.85rem", marginBottom: "0.5rem" }}>EVIDENCE ITEMS</p>
+            <p style={{ fontSize: "2rem", fontWeight: 700 }}>{dashboardData.stats.totalEvidence}</p>
+          </div>
+        </div>
+      )}
+
+      {tab === "users" && (
+        <div className="card" style={{ border: "1px solid var(--border)", overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                <th style={{ padding: "1rem", textAlign: "left", fontWeight: 700, color: "var(--text-dim)", fontSize: "0.85rem" }}>EMAIL</th>
+                <th style={{ padding: "1rem", textAlign: "left", fontWeight: 700, color: "var(--text-dim)", fontSize: "0.85rem" }}>NAME</th>
+                <th style={{ padding: "1rem", textAlign: "left", fontWeight: 700, color: "var(--text-dim)", fontSize: "0.85rem" }}>ROLE</th>
+                <th style={{ padding: "1rem", textAlign: "left", fontWeight: 700, color: "var(--text-dim)", fontSize: "0.85rem" }}>MFA</th>
+                <th style={{ padding: "1rem", textAlign: "left", fontWeight: 700, color: "var(--text-dim)", fontSize: "0.85rem" }}>JOINED</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                  <td style={{ padding: "1rem" }}>{user.email}</td>
+                  <td style={{ padding: "1rem" }}>{user.name}</td>
+                  <td style={{ padding: "1rem" }}>
+                    <span style={{ background: user.role === "ADMIN" ? "rgba(200,0,26,0.2)" : "rgba(100,150,200,0.2)", padding: "0.25rem 0.75rem", borderRadius: "4px", fontSize: "0.8rem", fontWeight: 600 }}>
+                      {user.role}
+                    </span>
+                  </td>
+                  <td style={{ padding: "1rem" }}>{user.mfaEnabled ? "✓" : "–"}</td>
+                  <td style={{ padding: "1rem", color: "var(--text-dim)", fontSize: "0.85rem" }}>{new Date(user.createdAt).toLocaleDateString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {tab === "logs" && dashboardData && (
+        <div className="card" style={{ border: "1px solid var(--border)", overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                <th style={{ padding: "1rem", textAlign: "left", fontWeight: 700, color: "var(--text-dim)", fontSize: "0.85rem" }}>ACTION</th>
+                <th style={{ padding: "1rem", textAlign: "left", fontWeight: 700, color: "var(--text-dim)", fontSize: "0.85rem" }}>USER</th>
+                <th style={{ padding: "1rem", textAlign: "left", fontWeight: 700, color: "var(--text-dim)", fontSize: "0.85rem" }}>RESOURCE</th>
+                <th style={{ padding: "1rem", textAlign: "left", fontWeight: 700, color: "var(--text-dim)", fontSize: "0.85rem" }}>TIME</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dashboardData.recentAuditLogs.map((log) => (
+                <tr key={log.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                  <td style={{ padding: "1rem", fontWeight: 600 }}>{log.action}</td>
+                  <td style={{ padding: "1rem" }}>{log.user?.email || "–"}</td>
+                  <td style={{ padding: "1rem", color: "var(--text-dim)", fontSize: "0.85rem" }}>{log.resource}</td>
+                  <td style={{ padding: "1rem", color: "var(--text-dim)", fontSize: "0.85rem" }}>{new Date(log.createdAt).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
