@@ -46,7 +46,7 @@ export default function LoginPage() {
         <div className="card" style={{ padding: "2rem", border: "1px solid var(--border2)" }}>
           {/* Tabs */}
           <div style={{ display: "flex", background: "var(--surface2)", borderRadius: "var(--radius)", padding: "3px", marginBottom: "1.75rem", border: "1px solid var(--border)" }}>
-            {(["login", "register"] as const).map((m) => (
+            {([" login", "register"] as const).map((m) => (
               <button key={m} onClick={() => { setMode(m); setError(""); }}
                 style={{ flex: 1, padding: "0.5rem", borderRadius: "4px", border: "none", background: mode === m ? "var(--red)" : "transparent", color: mode === m ? "#fff" : "var(--text-dim)", fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.05em", textTransform: "uppercase", transition: "all 0.15s", cursor: "pointer" }}>
                 {m === "login" ? "Access System" : "New Operator"}
@@ -76,6 +76,64 @@ export default function LoginPage() {
               style={{ width: "100%", justifyContent: "center", marginTop: "0.5rem", padding: "0.7rem" }}>
               {loading ? "Authenticating…" : mode === "login" ? "Enter System" : "Create Account"}
             </button>
+
+            {/* Forgot Password and Create Account buttons */}
+            {mode === "login" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.5rem" }}>
+                <button 
+                  onClick={() => alert("Password reset functionality coming soon")}
+                  style={{
+                    width: "100%",
+                    padding: "0.6rem",
+                    background: "transparent",
+                    border: "1px solid var(--border)",
+                    color: "var(--text-dim)",
+                    borderRadius: "var(--radius)",
+                    cursor: "pointer",
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    transition: "all 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "var(--surface2)";
+                    e.currentTarget.style.color = "var(--text)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = "var(--text-dim)";
+                  }}
+                >
+                  Forgot Password?
+                </button>
+                <button 
+                  onClick={() => { setMode("register"); setError(""); }}
+                  style={{
+                    width: "100%",
+                    padding: "0.6rem",
+                    background: "var(--surface2)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text)",
+                    borderRadius: "var(--radius)",
+                    cursor: "pointer",
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    transition: "all 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "var(--red)";
+                    e.currentTarget.style.color = "#fff";
+                    e.currentTarget.style.borderColor = "var(--red)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "var(--surface2)";
+                    e.currentTarget.style.color = "var(--text)";
+                    e.currentTarget.style.borderColor = "var(--border)";
+                  }}
+                >
+                  Create Account
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -86,3 +144,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
