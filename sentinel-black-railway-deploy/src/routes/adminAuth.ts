@@ -1,27 +1,34 @@
 import { Router, Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import prisma from "../prismaClient";
 import { config } from "../config";
+import emailService from "../services/emailService";
+import mfaService from "../services/mfa";
 
 const router = Router();
+const resetTokens = new Map<string, { email: string; expiresAt: Date }>();
 
-// Simple admin login
 router.post("/admin/login", async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body as { email?: string; password?: string };
-
     if (!email || !password) {
       res.status(400).json({ error: "email and password are required" });
       return;
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
+    const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       res.status(401).json({ error: "Invalid credentials" });
+      return;
+    }
+
+    if (user.mfaEnabled) {
+      const mfaCode = mfaService.generateCode();
+      await mfaService.storeMFACode(user.id, mfaCode);
+      await emailService.sendMFACode(user.email, mfaCode);
+      res.json({ requiresMFA: true, userId: user.id, message: "MFA code sent to email" });
       return;
     }
 
@@ -33,12 +40,7 @@ router.post("/admin/login", async (req: Request, res: Response): Promise<void> =
 
     res.json({
       token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role },
     });
   } catch (err) {
     console.error("Login error:", err);
@@ -46,11 +48,107 @@ router.post("/admin/login", async (req: Request, res: Response): Promise<void> =
   }
 });
 
-// Simple admin create
+router.post("/admin/verify-mfa", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId, mfaCode } = req.body as { userId?: string; mfaCode?: string };
+    if (!userId || !mfaCode) {
+      res.status(400).json({ error: "userId and mfaCode are required" });
+      return;
+    }
+
+    const isValid = await mfaService.verifyMFACode(userId, mfaCode);
+    if (!isValid) {
+      res.status(401).json({ error: "Invalid MFA code" });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    const token = jwt.sign(
+      { userId: user.id, email: user.email, role: user.role },
+      config.jwtSecret,
+      { expiresIn: "24h" }
+    );
+
+    res.json({
+      token,
+      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+    });
+  } catch (err) {
+    console.error("MFA error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/admin/forgot-password", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email } = req.body as { email?: string };
+    if (!email) {
+      res.status(400).json({ error: "email is required" });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      res.json({ message: "If account exists, reset link has been sent" });
+      return;
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    resetTokens.set(resetToken, { email, expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) });
+
+    await emailService.sendPasswordReset(email, resetToken);
+    res.json({ message: "Password reset link sent to email" });
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/admin/reset-password", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { resetToken, email, newPassword } = req.body as { resetToken?: string; email?: string; newPassword?: string };
+
+    if (!resetToken || !email || !newPassword) {
+      res.status(400).json({ error: "resetToken, email, and newPassword are required" });
+      return;
+    }
+
+    if (newPassword.length < 12) {
+      res.status(400).json({ error: "Password must be at least 12 characters" });
+      return;
+    }
+
+    const tokenData = resetTokens.get(resetToken);
+    if (!tokenData || tokenData.email !== email || new Date() > tokenData.expiresAt) {
+      res.status(401).json({ error: "Invalid or expired reset token" });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({ where: { id: user.id }, data: { password: hashed } });
+    resetTokens.delete(resetToken);
+
+    res.json({ message: "Password reset successful" });
+  } catch (err) {
+    console.error("Reset password error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.post("/admin/create", async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password, name } = req.body as { email?: string; password?: string; name?: string };
-
     if (!email || !password || !name) {
       res.status(400).json({ error: "email, password, and name are required" });
       return;
@@ -62,24 +160,14 @@ router.post("/admin/create", async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    const hashed = await bcrypt.hash(password, 10);
+    const hashed = await bcrypt.hash(password, 12);
     const newUser = await prisma.user.create({
-      data: {
-        email,
-        password: hashed,
-        name,
-        role: "ADMIN",
-      },
+      data: { email, password: hashed, name, role: "ADMIN" },
     });
 
     res.json({
       success: true,
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        name: newUser.name,
-        role: newUser.role,
-      },
+      user: { id: newUser.id, email: newUser.email, name: newUser.name, role: newUser.role },
     });
   } catch (err) {
     console.error("Create user error:", err);
@@ -88,4 +176,3 @@ router.post("/admin/create", async (req: Request, res: Response): Promise<void> 
 });
 
 export default router;
-
