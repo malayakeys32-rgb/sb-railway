@@ -1,1 +1,299 @@
-\"use client\";\nimport { useState } from \"react\";\nimport { useRouter } from \"next/navigation\";\nimport Image from \"next/image\";\nimport axios from \"axios\";\n\nconst API_BASE = process.env.NEXT_PUBLIC_API_URL || \"http://localhost:3001\";\n\nexport default function AdminLoginPage() {\n  const [step, setStep] = useState<\"login\" | \"mfa\" | \"reset\">(\"login\");\n  const [email, setEmail] = useState(\"\");\n  const [password, setPassword] = useState(\"\");\n  const [mfaCode, setMfaCode] = useState(\"\");\n  const [userId, setUserId] = useState(\"\");\n  const [error, setError] = useState(\"\");\n  const [loading, setLoading] = useState(false);\n  const [resetEmail, setResetEmail] = useState(\"\");\n  const [resetToken, setResetToken] = useState(\"\");\n  const [newPassword, setNewPassword] = useState(\"\");\n  const [confirmPassword, setConfirmPassword] = useState(\"\");\n  const router = useRouter();\n\n  async function handleAdminLogin() {\n    setError(\"\");\n    setLoading(true);\n    try {\n      const res = await axios.post(`${API_BASE}/auth/admin/login`, {\n        email,\n        password,\n      });\n\n      if (res.data.requiresMFA) {\n        setUserId(res.data.userId);\n        setStep(\"mfa\");\n      } else {\n        localStorage.setItem(\"token\", res.data.token);\n        localStorage.setItem(\"user\", JSON.stringify(res.data.user));\n        router.push(\"/admin/dashboard\");\n      }\n    } catch (err: any) {\n      setError(err?.response?.data?.error ?? \"Login failed\");\n    } finally {\n      setLoading(false);\n    }\n  }\n\n  async function handleMFAVerify() {\n    setError(\"\");\n    setLoading(true);\n    try {\n      const res = await axios.post(`${API_BASE}/auth/admin/verify-mfa`, {\n        userId,\n        mfaCode,\n      });\n      localStorage.setItem(\"token\", res.data.token);\n      localStorage.setItem(\"user\", JSON.stringify(res.data.user));\n      router.push(\"/admin/dashboard\");\n    } catch (err: any) {\n      setError(err?.response?.data?.error ?? \"MFA verification failed\");\n    } finally {\n      setLoading(false);\n    }\n  }\n\n  async function handleForgotPassword() {\n    setError(\"\");\n    setLoading(true);\n    try {\n      const res = await axios.post(`${API_BASE}/auth/admin/forgot-password`, {\n        email: resetEmail,\n      });\n      setError(\"\");\n      setResetEmail(\"\");\n      alert(\"Check your email for password reset instructions\");\n    } catch (err: any) {\n      setError(err?.response?.data?.error ?? \"Request failed\");\n    } finally {\n      setLoading(false);\n    }\n  }\n\n  async function handleResetPassword() {\n    setError(\"\");\n    if (newPassword !== confirmPassword) {\n      setError(\"Passwords do not match\");\n      return;\n    }\n    if (newPassword.length < 12) {\n      setError(\"Password must be at least 12 characters\");\n      return;\n    }\n\n    setLoading(true);\n    try {\n      await axios.post(`${API_BASE}/auth/admin/reset-password`, {\n        resetToken,\n        email: resetEmail,\n        newPassword,\n      });\n      alert(\"Password reset successful. Please log in.\");\n      setStep(\"login\");\n      setResetToken(\"\");\n      setNewPassword(\"\");\n      setConfirmPassword(\"\");\n    } catch (err: any) {\n      setError(err?.response?.data?.error ?? \"Reset failed\");\n    } finally {\n      setLoading(false);\n    }\n  }\n\n  return (\n    <div style={{ minHeight: \"100vh\", display: \"flex\", alignItems: \"center\", justifyContent: \"center\", background: \"var(--bg)\", padding: \"1rem\", position: \"relative\", overflow: \"hidden\" }}>\n      {/* Background grid */}\n      <div style={{ position: \"absolute\", inset: 0, backgroundImage: \"linear-gradient(rgba(200,0,26,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(200,0,26,0.03) 1px, transparent 1px)\", backgroundSize: \"40px 40px\", pointerEvents: \"none\" }} />\n\n      <div style={{ width: \"100%\", maxWidth: 450, position: \"relative\" }}>\n        {/* Logo */}\n        <div style={{ textAlign: \"center\", marginBottom: \"2.5rem\" }}>\n          <div style={{ display: \"flex\", justifyContent: \"center\", marginBottom: \"0.75rem\" }}>\n            <Image src=\"/logo-black.png\" alt=\"Sentinel Black\" width={140} height={140} priority style={{ objectFit: \"contain\" }} />\n          </div>\n          <div style={{ color: \"var(--text-dim)\", fontSize: \"0.8rem\", marginTop: \"0.4rem\", letterSpacing: \"0.06em\", textTransform: \"uppercase\" }}>\n            ADMIN OPERATIONS\n          </div>\n        </div>\n\n        <div className=\"card\" style={{ padding: \"2rem\", border: \"1px solid var(--border2)\" }}>\n          {/* Login Step */}\n          {step === \"login\" && (\n            <>\n              <div style={{ display: \"flex\", flexDirection: \"column\", gap: \"1rem\" }}>\n                <div className=\"form-group\">\n                  <label className=\"form-label\">Admin Email</label>\n                  <input\n                    className=\"form-input\"\n                    type=\"email\"\n                    placeholder=\"admin@organization.local\"\n                    value={email}\n                    onChange={(e) => setEmail(e.target.value)}\n                    onKeyDown={(e) => e.key === \"Enter\" && handleAdminLogin()}\n                    disabled={loading}\n                  />\n                </div>\n                <div className=\"form-group\">\n                  <label className=\"form-label\">Security Credential</label>\n                  <input\n                    className=\"form-input\"\n                    type=\"password\"\n                    placeholder=\"••••••••••••••••\"\n                    value={password}\n                    onChange={(e) => setPassword(e.target.value)}\n                    onKeyDown={(e) => e.key === \"Enter\" && handleAdminLogin()}\n                    disabled={loading}\n                  />\n                </div>\n\n                {error && <p className=\"error-msg\">⚠ {error}</p>}\n\n                <button className=\"btn btn-red\" onClick={handleAdminLogin} disabled={loading} style={{ width: \"100%\", justifyContent: \"center\", padding: \"0.7rem\" }}>\n                  {loading ? \"Authenticating…\" : \"Secure Access\"}\n                </button>\n\n                <button\n                  onClick={() => {\n                    setStep(\"reset\");\n                    setError(\"\");\n                  }}\n                  style={{ background: \"none\", border: \"none\", color: \"var(--red)\", cursor: \"pointer\", fontSize: \"0.85rem\", textDecoration: \"underline\" }}\n                  disabled={loading}\n                >\n                  Forgot password?\n                </button>\n              </div>\n            </>\n          )}\n\n          {/* MFA Step */}\n          {step === \"mfa\" && (\n            <>\n              <h3 style={{ marginBottom: \"1rem\", color: \"var(--text)\" }}>Two-Factor Authentication</h3>\n              <div style={{ display: \"flex\", flexDirection: \"column\", gap: \"1rem\" }}>\n                <p style={{ fontSize: \"0.9rem\", color: \"var(--text-dim)\" }}>Enter the 6-digit code sent to your email.</p>\n                <div className=\"form-group\">\n                  <label className=\"form-label\">MFA Code</label>\n                  <input\n                    className=\"form-input\"\n                    type=\"text\"\n                    placeholder=\"000000\"\n                    value={mfaCode}\n                    onChange={(e) => setMfaCode(e.target.value.replace(/\\D/g, \"\").slice(0, 6))}\n                    onKeyDown={(e) => e.key === \"Enter\" && handleMFAVerify()}\n                    disabled={loading}\n                    maxLength={6}\n                  />\n                </div>\n\n                {error && <p className=\"error-msg\">⚠ {error}</p>}\n\n                <button className=\"btn btn-red\" onClick={handleMFAVerify} disabled={loading} style={{ width: \"100%\", justifyContent: \"center\", padding: \"0.7rem\" }}>\n                  {loading ? \"Verifying…\" : \"Verify Code\"}\n                </button>\n\n                <button\n                  onClick={() => {\n                    setStep(\"login\");\n                    setMfaCode(\"\");\n                    setError(\"\");\n                  }}\n                  style={{ background: \"none\", border: \"none\", color: \"var(--text-dim)\", cursor: \"pointer\", fontSize: \"0.85rem\" }}\n                  disabled={loading}\n                >\n                  Back to login\n                </button>\n              </div>\n            </>\n          )}\n\n          {/* Password Reset Step */}\n          {step === \"reset\" && !resetToken && (\n            <>\n              <h3 style={{ marginBottom: \"1rem\", color: \"var(--text)\" }}>Password Recovery</h3>\n              <div style={{ display: \"flex\", flexDirection: \"column\", gap: \"1rem\" }}>\n                <p style={{ fontSize: \"0.9rem\", color: \"var(--text-dim)\" }}>Enter your admin email to receive a recovery link.</p>\n                <div className=\"form-group\">\n                  <label className=\"form-label\">Admin Email</label>\n                  <input\n                    className=\"form-input\"\n                    type=\"email\"\n                    placeholder=\"admin@organization.local\"\n                    value={resetEmail}\n                    onChange={(e) => setResetEmail(e.target.value)}\n                    onKeyDown={(e) => e.key === \"Enter\" && handleForgotPassword()}\n                    disabled={loading}\n                  />\n                </div>\n\n                {error && <p className=\"error-msg\">⚠ {error}</p>}\n\n                <button className=\"btn btn-red\" onClick={handleForgotPassword} disabled={loading} style={{ width: \"100%\", justifyContent: \"center\", padding: \"0.7rem\" }}>\n                  {loading ? \"Sending…\" : \"Send Recovery Link\"}\n                </button>\n\n                <button\n                  onClick={() => {\n                    setStep(\"login\");\n                    setResetEmail(\"\");\n                    setError(\"\");\n                  }}\n                  style={{ background: \"none\", border: \"none\", color: \"var(--text-dim)\", cursor: \"pointer\", fontSize: \"0.85rem\" }}\n                  disabled={loading}\n                >\n                  Back to login\n                </button>\n              </div>\n            </>\n          )}\n\n          {/* Reset Password Form */}\n          {step === \"reset\" && resetToken && (\n            <>\n              <h3 style={{ marginBottom: \"1rem\", color: \"var(--text)\" }}>Reset Password</h3>\n              <div style={{ display: \"flex\", flexDirection: \"column\", gap: \"1rem\" }}>\n                <div className=\"form-group\">\n                  <label className=\"form-label\">New Password</label>\n                  <input\n                    className=\"form-input\"\n                    type=\"password\"\n                    placeholder=\"••••••••••••••••\"\n                    value={newPassword}\n                    onChange={(e) => setNewPassword(e.target.value)}\n                    disabled={loading}\n                  />\n                  <p style={{ fontSize: \"0.75rem\", color: \"var(--text-dim)\", marginTop: \"0.25rem\" }}>Minimum 12 characters</p>\n                </div>\n                <div className=\"form-group\">\n                  <label className=\"form-label\">Confirm Password</label>\n                  <input\n                    className=\"form-input\"\n                    type=\"password\"\n                    placeholder=\"••••••••••••••••\"\n                    value={confirmPassword}\n                    onChange={(e) => setConfirmPassword(e.target.value)}\n                    disabled={loading}\n                  />\n                </div>\n\n                {error && <p className=\"error-msg\">⚠ {error}</p>}\n\n                <button className=\"btn btn-red\" onClick={handleResetPassword} disabled={loading} style={{ width: \"100%\", justifyContent: \"center\", padding: \"0.7rem\" }}>\n                  {loading ? \"Resetting…\" : \"Reset Password\"}\n                </button>\n              </div>\n            </>\n          )}\n        </div>\n\n        <p style={{ textAlign: \"center\", color: \"var(--text-dim)\", fontSize: \"0.72rem\", marginTop: \"1.5rem\", letterSpacing: \"0.04em\" }}>\n          ADMIN ACCESS RESTRICTED · ALL ACTIVITY LOGGED\n        </p>\n      </div>\n    </div>\n  );\n}\n
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import axios from "axios";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+export default function AdminLoginPage() {
+  const [step, setStep] = useState<"login" | "mfa" | "reset">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [mfaCode, setMfaCode] = useState("");
+  const [userId, setUserId] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const router = useRouter();
+
+  async function handleAdminLogin() {
+    setError("");
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API_BASE}/auth/admin/login`, {
+        email,
+        password,
+      });
+
+      if (res.data.requiresMFA) {
+        setUserId(res.data.userId);
+        setStep("mfa");
+      } else {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        router.push("/admin/dashboard");
+      }
+    } catch (err: any) {
+      setError(err?.response?.data?.error ?? "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleMFAVerify() {
+    setError("");
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API_BASE}/auth/admin/verify-mfa`, {
+        userId,
+        mfaCode,
+      });
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      router.push("/admin/dashboard");
+    } catch (err: any) {
+      setError(err?.response?.data?.error ?? "MFA verification failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleForgotPassword() {
+    setError("");
+    setLoading(true);
+    try {
+      await axios.post(`${API_BASE}/auth/admin/forgot-password`, {
+        email: resetEmail,
+      });
+      alert("Check your email for password reset instructions");
+      setResetEmail("");
+      setStep("login");
+    } catch (err: any) {
+      setError(err?.response?.data?.error ?? "Request failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResetPassword() {
+    setError("");
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    if (newPassword.length < 12) {
+      setError("Password must be at least 12 characters");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await axios.post(`${API_BASE}/auth/admin/reset-password`, {
+        resetToken,
+        email: resetEmail,
+        newPassword,
+      });
+      alert("Password reset successful. Please log in.");
+      setStep("login");
+      setResetToken("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: any) {
+      setError(err?.response?.data?.error ?? "Reset failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)", padding: "1rem", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(200,0,26,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(200,0,26,0.03) 1px, transparent 1px)", backgroundSize: "40px 40px", pointerEvents: "none" }} />
+
+      <div style={{ width: "100%", maxWidth: 450, position: "relative" }}>
+        <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.75rem" }}>
+            <Image src="/logo-black.png" alt="Sentinel Black" width={140} height={140} priority style={{ objectFit: "contain" }} />
+          </div>
+          <div style={{ color: "var(--text-dim)", fontSize: "0.8rem", marginTop: "0.4rem", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            ADMIN OPERATIONS
+          </div>
+        </div>
+
+        <div className="card" style={{ padding: "2rem", border: "1px solid var(--border2)" }}>
+          {step === "login" && (
+            <>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div className="form-group">
+                  <label className="form-label">Admin Email</label>
+                  <input
+                    className="form-input"
+                    type="email"
+                    placeholder="admin@organization.local"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()}
+                    disabled={loading}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Security Credential</label>
+                  <input
+                    className="form-input"
+                    type="password"
+                    placeholder="••••••••••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()}
+                    disabled={loading}
+                  />
+                </div>
+
+                {error && <p className="error-msg">⚠ {error}</p>}
+
+                <button className="btn btn-red" onClick={handleAdminLogin} disabled={loading} style={{ width: "100%", justifyContent: "center", padding: "0.7rem" }}>
+                  {loading ? "Authenticating…" : "Secure Access"}
+                </button>
+
+                <button
+                  onClick={() => {
+                    setStep("reset");
+                    setError("");
+                  }}
+                  style={{ background: "none", border: "none", color: "var(--red)", cursor: "pointer", fontSize: "0.85rem", textDecoration: "underline" }}
+                  disabled={loading}
+                >
+                  Forgot password?
+                </button>
+              </div>
+            </>
+          )}
+
+          {step === "mfa" && (
+            <>
+              <h3 style={{ marginBottom: "1rem", color: "var(--text)" }}>Two-Factor Authentication</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <p style={{ fontSize: "0.9rem", color: "var(--text-dim)" }}>Enter the 6-digit code sent to your email.</p>
+                <div className="form-group">
+                  <label className="form-label">MFA Code</label>
+                  <input
+                    className="form-input"
+                    type="text"
+                    placeholder="000000"
+                    value={mfaCode}
+                    onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    onKeyDown={(e) => e.key === "Enter" && handleMFAVerify()}
+                    disabled={loading}
+                    maxLength={6}
+                  />
+                </div>
+
+                {error && <p className="error-msg">⚠ {error}</p>}
+
+                <button className="btn btn-red" onClick={handleMFAVerify} disabled={loading} style={{ width: "100%", justifyContent: "center", padding: "0.7rem" }}>
+                  {loading ? "Verifying…" : "Verify Code"}
+                </button>
+
+                <button
+                  onClick={() => {
+                    setStep("login");
+                    setMfaCode("");
+                    setError("");
+                  }}
+                  style={{ background: "none", border: "none", color: "var(--text-dim)", cursor: "pointer", fontSize: "0.85rem" }}
+                  disabled={loading}
+                >
+                  Back to login
+                </button>
+              </div>
+            </>
+          )}
+
+          {step === "reset" && !resetToken && (
+            <>
+              <h3 style={{ marginBottom: "1rem", color: "var(--text)" }}>Password Recovery</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <p style={{ fontSize: "0.9rem", color: "var(--text-dim)" }}>Enter your admin email to receive a recovery link.</p>
+                <div className="form-group">
+                  <label className="form-label">Admin Email</label>
+                  <input
+                    className="form-input"
+                    type="email"
+                    placeholder="admin@organization.local"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleForgotPassword()}
+                    disabled={loading}
+                  />
+                </div>
+
+                {error && <p className="error-msg">⚠ {error}</p>}
+
+                <button className="btn btn-red" onClick={handleForgotPassword} disabled={loading} style={{ width: "100%", justifyContent: "center", padding: "0.7rem" }}>
+                  {loading ? "Sending…" : "Send Recovery Link"}
+                </button>
+
+                <button
+                  onClick={() => {
+                    setStep("login");
+                    setResetEmail("");
+                    setError("");
+                  }}
+                  style={{ background: "none", border: "none", color: "var(--text-dim)", cursor: "pointer", fontSize: "0.85rem" }}
+                  disabled={loading}
+                >
+                  Back to login
+                </button>
+              </div>
+            </>
+          )}
+
+          {step === "reset" && resetToken && (
+            <>
+              <h3 style={{ marginBottom: "1rem", color: "var(--text)" }}>Reset Password</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div className="form-group">
+                  <label className="form-label">New Password</label>
+                  <input
+                    className="form-input"
+                    type="password"
+                    placeholder="••••••••••••••••"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    disabled={loading}
+                  />
+                  <p style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginTop: "0.25rem" }}>Minimum 12 characters</p>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Confirm Password</label>
+                  <input
+                    className="form-input"
+                    type="password"
+                    placeholder="••••••••••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+
+                {error && <p className="error-msg">⚠ {error}</p>}
+
+                <button className="btn btn-red" onClick={handleResetPassword} disabled={loading} style={{ width: "100%", justifyContent: "center", padding: "0.7rem" }}>
+                  {loading ? "Resetting…" : "Reset Password"}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        <p style={{ textAlign: "center", color: "var(--text-dim)", fontSize: "0.72rem", marginTop: "1.5rem", letterSpacing: "0.04em" }}>
+          ADMIN ACCESS RESTRICTED · ALL ACTIVITY LOGGED
+        </p>
+      </div>
+    </div>
+  );
+}
+
