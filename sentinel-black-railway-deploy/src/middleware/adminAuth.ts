@@ -16,10 +16,14 @@ export async function adminAuthenticate(req: AdminRequest, res: Response, next: 
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) { res.status(401).json({ error: "No token provided" }); return; }
 
-    const decoded = jwt.verify(token, config.jwtSecret) as any;
+    const decoded = jwt.verify(token, config.jwtSecret) as {
+      userId: string;
+      email: string;
+      role: Role;
+    };
     req.user = decoded;
 
-    if (req.user.role !== "ADMIN") {
+    if (decoded.role !== "ADMIN") {
       res.status(403).json({ error: "Admin access required" });
       return;
     }
