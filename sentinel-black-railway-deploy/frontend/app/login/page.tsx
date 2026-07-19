@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
@@ -21,19 +22,21 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (mode === "forgot") {
-        // Request password reset
-        const res = await fetch("/api/auth/forgot-password", {
+        // Reset password with email, name, and new password
+        const res = await fetch("/api/auth/reset-password", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({ email, name, newPassword }),
         });
         const data = await res.json();
         if (!res.ok) {
-          setError(data.error ?? "Failed to request password reset");
+          setError(data.error ?? "Failed to reset password");
           return;
         }
-        setSuccessMsg("Password reset link sent to your email");
+        setSuccessMsg("Password reset successfully!");
         setEmail("");
+        setName("");
+        setNewPassword("");
         setTimeout(() => setMode("login"), 2000);
         return;
       }
@@ -81,7 +84,7 @@ export default function LoginPage() {
           {mode === "forgot" && (
             <div style={{ marginBottom: "1.75rem", textAlign: "center" }}>
               <h2 style={{ color: "var(--text)", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 0.5rem 0" }}>Reset Password</h2>
-              <p style={{ color: "var(--text-dim)", fontSize: "0.85rem", margin: 0 }}>Enter your email to receive a reset link</p>
+              <p style={{ color: "var(--text-dim)", fontSize: "0.85rem", margin: 0 }}>Enter your details to reset your password</p>
             </div>
           )}
 
@@ -101,10 +104,20 @@ export default function LoginPage() {
             )}
 
             {mode === "forgot" && (
-              <div className="form-group">
-                <label className="form-label">Email Address</label>
-                <input className="form-input" type="email" placeholder="email@domain.com" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSubmit()} />
-              </div>
+              <>
+                <div className="form-group">
+                  <label className="form-label">Email Address</label>
+                  <input className="form-input" type="email" placeholder="email@domain.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">User Name</label>
+                  <input className="form-input" type="text" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">New Password</label>
+                  <input className="form-input" type="password" placeholder="••••••••••••" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSubmit()} />
+                </div>
+              </>
             )}
 
             {(mode === "login" || mode === "register") && (
@@ -119,7 +132,7 @@ export default function LoginPage() {
 
             <button className="btn btn-red" onClick={handleSubmit} disabled={loading}
               style={{ width: "100%", justifyContent: "center", marginTop: "0.5rem", padding: "0.7rem" }}>
-              {loading ? "Processing…" : mode === "login" ? "Enter System" : mode === "register" ? "Create Account" : "Send Reset Link"}
+              {loading ? "Processing…" : mode === "login" ? "Enter System" : mode === "register" ? "Create Account" : "Reset Password"}
             </button>
 
             {/* Forgot Password and Create Account buttons */}
@@ -183,7 +196,7 @@ export default function LoginPage() {
             {/* Back to Login button */}
             {mode === "forgot" && (
               <button 
-                onClick={() => { setMode("login"); setError(""); setSuccessMsg(""); setEmail(""); }}
+                onClick={() => { setMode("login"); setError(""); setSuccessMsg(""); setEmail(""); setName(""); setNewPassword(""); }}
                 style={{
                   width: "100%",
                   padding: "0.6rem",
