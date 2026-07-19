@@ -1,1 +1,49 @@
-import crypto from "crypto";\nimport prisma from "../prismaClient";\n\nexport interface MFASession {\n  code: string;\n  expiresAt: Date;\n  attempts: number;\n}\n\nexport const mfaService = {\n  // Generate 6-digit code\n  generateCode(): string {\n    return Math.floor(100000 + Math.random() * 900000).toString();\n  },\n\n  // Store MFA code in cache (in production, use Redis)\n  mfaStore: new Map<string, MFASession>(),\n\n  async storeMFACode(userId: string, code: string): Promise<void> {\n    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes\n    this.mfaStore.set(userId, { code, expiresAt, attempts: 0 });\n  },\n\n  async verifyMFACode(userId: string, code: string): Promise<boolean> {\n    const session = this.mfaStore.get(userId);\n    if (!session) return false;\n    if (new Date() > session.expiresAt) {\n      this.mfaStore.delete(userId);\n      return false;\n    }\n    if (session.attempts >= 3) {\n      this.mfaStore.delete(userId);\n      return false;\n    }\n    session.attempts++;\n    if (session.code === code) {\n      this.mfaStore.delete(userId);\n      return true;\n    }\n    return false;\n  },\n\n  clearMFACode(userId: string): void {\n    this.mfaStore.delete(userId);\n  },\n};\n\nexport default mfaService;\n
+import crypto from "crypto";
+import prisma from "../prismaClient";
+
+export interface MFASession {
+  code: string;
+  expiresAt: Date;
+  attempts: number;
+}
+
+export const mfaService = {
+  // Generate 6-digit code
+  generateCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  },
+
+  // Store MFA code in cache (in production, use Redis)
+  mfaStore: new Map<string, MFASession>(),
+
+  async storeMFACode(userId: string, code: string): Promise<void> {
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    this.mfaStore.set(userId, { code, expiresAt, attempts: 0 });
+  },
+
+  async verifyMFACode(userId: string, code: string): Promise<boolean> {
+    const session = this.mfaStore.get(userId);
+    if (!session) return false;
+    if (new Date() > session.expiresAt) {
+      this.mfaStore.delete(userId);
+      return false;
+    }
+    if (session.attempts >= 3) {
+      this.mfaStore.delete(userId);
+      return false;
+    }
+    session.attempts++;
+    if (session.code === code) {
+      this.mfaStore.delete(userId);
+      return true;
+    }
+    return false;
+  },
+
+  clearMFACode(userId: string): void {
+    this.mfaStore.delete(userId);
+  },
+};
+
+export default mfaService;
+
