@@ -5,18 +5,39 @@ import Image from "next/image";
 import { authApi, useAuthStore } from "../api/client";
 
 export default function LoginPage() {
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<"login" | "register" | "forgot">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
   const { setAuth } = useAuthStore();
   const router = useRouter();
 
   async function handleSubmit() {
-    setError(""); setLoading(true);
+    setError("");
+    setSuccessMsg("");
+    setLoading(true);
     try {
+      if (mode === "forgot") {
+        // Request password reset
+        const res = await fetch("/api/auth/forgot-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error ?? "Failed to request password reset");
+          return;
+        }
+        setSuccessMsg("Password reset link sent to your email");
+        setEmail("");
+        setTimeout(() => setMode("login"), 2000);
+        return;
+      }
+
       const res = mode === "login"
         ? await authApi.login(email, password)
         : await authApi.register(email, password, name);
@@ -44,15 +65,25 @@ export default function LoginPage() {
         </div>
 
         <div className="card" style={{ padding: "2rem", border: "1px solid var(--border2)" }}>
-          {/* Tabs */}
-          <div style={{ display: "flex", background: "var(--surface2)", borderRadius: "var(--radius)", padding: "3px", marginBottom: "1.75rem", border: "1px solid var(--border)" }}>
-            {([" login", "register"] as const).map((m) => (
-              <button key={m} onClick={() => { setMode(m); setError(""); }}
-                style={{ flex: 1, padding: "0.5rem", borderRadius: "4px", border: "none", background: mode === m ? "var(--red)" : "transparent", color: mode === m ? "#fff" : "var(--text-dim)", fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.05em", textTransform: "uppercase", transition: "all 0.15s", cursor: "pointer" }}>
-                {m === "login" ? "Access System" : "New Operator"}
-              </button>
-            ))}
-          </div>
+          {/* Tabs - only show for login/register modes */}
+          {mode !== "forgot" && (
+            <div style={{ display: "flex", background: "var(--surface2)", borderRadius: "var(--radius)", padding: "3px", marginBottom: "1.75rem", border: "1px solid var(--border)" }}>
+              {(["login", "register"] as const).map((m) => (
+                <button key={m} onClick={() => { setMode(m); setError(""); setSuccessMsg(""); }}
+                  style={{ flex: 1, padding: "0.5rem", borderRadius: "4px", border: "none", background: mode === m ? "var(--red)" : "transparent", color: mode === m ? "#fff" : "var(--text-dim)", fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.05em", textTransform: "uppercase", transition: "all 0.15s", cursor: "pointer" }}>
+                  {m === "login" ? "Access System" : "New Operator"}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Forgot Password Header */}
+          {mode === "forgot" && (
+            <div style={{ marginBottom: "1.75rem", textAlign: "center" }}>
+              <h2 style={{ color: "var(--text)", fontSize: "1.1rem", fontWeight: 700, margin: "0 0 0.5rem 0" }}>Reset Password</h2>
+              <p style={{ color: "var(--text-dim)", fontSize: "0.85rem", margin: 0 }}>Enter your email to receive a reset link</p>
+            </div>
+          )}
 
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {mode === "register" && (
@@ -61,27 +92,41 @@ export default function LoginPage() {
                 <input className="form-input" type="text" placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
             )}
-            <div className="form-group">
-              <label className="form-label">Identity</label>
-              <input className="form-input" type="email" placeholder="email@domain.com" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSubmit()} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Auth Key</label>
-              <input className="form-input" type="password" placeholder="••••••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSubmit()} />
-            </div>
+
+            {mode !== "forgot" && (
+              <div className="form-group">
+                <label className="form-label">Identity</label>
+                <input className="form-input" type="email" placeholder="email@domain.com" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSubmit()} />
+              </div>
+            )}
+
+            {mode === "forgot" && (
+              <div className="form-group">
+                <label className="form-label">Email Address</label>
+                <input className="form-input" type="email" placeholder="email@domain.com" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSubmit()} />
+              </div>
+            )}
+
+            {(mode === "login" || mode === "register") && (
+              <div className="form-group">
+                <label className="form-label">Auth Key</label>
+                <input className="form-input" type="password" placeholder="••••••••••••" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSubmit()} />
+              </div>
+            )}
 
             {error && <p className="error-msg">⚠ {error}</p>}
+            {successMsg && <p style={{ color: "var(--green)", fontSize: "0.9rem", margin: "0.5rem 0 0 0" }}>✓ {successMsg}</p>}
 
             <button className="btn btn-red" onClick={handleSubmit} disabled={loading}
               style={{ width: "100%", justifyContent: "center", marginTop: "0.5rem", padding: "0.7rem" }}>
-              {loading ? "Authenticating…" : mode === "login" ? "Enter System" : "Create Account"}
+              {loading ? "Processing…" : mode === "login" ? "Enter System" : mode === "register" ? "Create Account" : "Send Reset Link"}
             </button>
 
             {/* Forgot Password and Create Account buttons */}
             {mode === "login" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.5rem" }}>
                 <button 
-                  onClick={() => alert("Password reset functionality coming soon")}
+                  onClick={() => { setMode("forgot"); setError(""); setSuccessMsg(""); }}
                   style={{
                     width: "100%",
                     padding: "0.6rem",
@@ -106,7 +151,7 @@ export default function LoginPage() {
                   Forgot Password?
                 </button>
                 <button 
-                  onClick={() => { setMode("register"); setError(""); }}
+                  onClick={() => { setMode("register"); setError(""); setSuccessMsg(""); }}
                   style={{
                     width: "100%",
                     padding: "0.6rem",
@@ -133,6 +178,34 @@ export default function LoginPage() {
                   Create Account
                 </button>
               </div>
+            )}
+
+            {/* Back to Login button */}
+            {mode === "forgot" && (
+              <button 
+                onClick={() => { setMode("login"); setError(""); setSuccessMsg(""); setEmail(""); }}
+                style={{
+                  width: "100%",
+                  padding: "0.6rem",
+                  background: "var(--surface2)",
+                  border: "1px solid var(--border)",
+                  color: "var(--text)",
+                  borderRadius: "var(--radius)",
+                  cursor: "pointer",
+                  fontSize: "0.85rem",
+                  fontWeight: 600,
+                  transition: "all 0.15s",
+                  marginTop: "0.5rem",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "var(--surface1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "var(--surface2)";
+                }}
+              >
+                Back to Login
+              </button>
             )}
           </div>
         </div>
