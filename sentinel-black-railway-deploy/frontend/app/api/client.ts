@@ -2,7 +2,7 @@ import axios from "axios";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:4000";
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:4000";
 export const api = axios.create({ baseURL: BASE });
 
 api.interceptors.request.use((cfg) => {
@@ -109,3 +109,4 @@ export const patternsApi = {
   update: (id: string, data: Partial<Pattern>) => api.patch<Pattern>(`/patterns/${id}`, data),
   delete: (id: string) => api.delete(`/patterns/${id}`),
 };
+
