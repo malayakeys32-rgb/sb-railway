@@ -21,6 +21,9 @@ model User {
   evidence        Evidence[]
   auditLogs       AuditLog[]
   sharedLinks     SharedLink[]
+  missions        Mission[]
+  missionLogs     MissionLog[]
+  teamAssignments TeamMember[]
 
   @@map("users")
 }
@@ -138,6 +141,96 @@ model SharedLink {
   @@map("shared_links")
 }
 
+model Mission {
+  id                    String          @id @default(cuid())
+  title                 String
+  description           String?
+  progressPercent       Int             @default(0)
+  status                MissionStatus   @default(ACTIVE)
+  missionDate           DateTime        @default(now())
+  createdById           String
+  createdBy             User            @relation(fields: [createdById], references: [id])
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  tasks                 MissionTask[]
+  timeline              MissionTimeline[]
+  logs                  MissionLog[]
+  teamMembers           TeamMember[]
+  readinessScores       ReadinessScore?
+
+  @@map("missions")
+}
+
+model MissionTask {
+  id          String          @id @default(cuid())
+  missionId   String
+  mission     Mission         @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  priority    TaskPriority    @default(MEDIUM)
+  status      TaskStatus      @default(PENDING)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("mission_tasks")
+}
+
+model MissionTimeline {
+  id          String   @id @default(cuid())
+  missionId   String
+  mission     Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  time        String
+  event       String
+  createdAt   DateTime @default(now())
+
+  @@map("mission_timeline")
+}
+
+model MissionLog {
+  id          String   @id @default(cuid())
+  missionId   String
+  mission     Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  note        String
+  timestamp   String
+  mediaUrl    String?
+  mediaType   String?
+  createdAt   DateTime @default(now())
+
+  @@map("mission_logs")
+}
+
+model TeamMember {
+  id          String          @id @default(cuid())
+  missionId   String
+  mission     Mission         @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User            @relation(fields: [userId], references: [id])
+  task        String
+  status      TeamMemberStatus @default(PENDING)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@unique([missionId, userId])
+  @@map("team_members")
+}
+
+model ReadinessScore {
+  id          String   @id @default(cuid())
+  missionId   String   @unique
+  mission     Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  planning    Int      @default(0)
+  staffing    Int      @default(0)
+  logistics   Int      @default(0)
+  safety      Int      @default(0)
+  budget      Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("readiness_scores")
+}
+
 enum Role {
   ADMIN
   REPORTER
@@ -157,3 +250,31 @@ enum IncidentStatus {
   RESOLVED
   CLOSED
 }
+
+enum MissionStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+  ARCHIVED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  BLOCKED
+}
+
+enum TeamMemberStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
