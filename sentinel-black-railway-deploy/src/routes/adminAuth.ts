@@ -10,6 +10,25 @@ import mfaService from "../services/mfa";
 const router = Router();
 const resetTokens = new Map<string, { email: string; expiresAt: Date }>();
 
+// Middleware to verify token
+const verifyToken = (req: Request, res: Response, next: any) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    res.status(401).json({ error: "Missing or invalid authorization header" });
+    return;
+  }
+
+  const token = authHeader.slice(7);
+  try {
+    const decoded = jwt.verify(token, config.jwtSecret) as any;
+    (req as any).userId = decoded.userId;
+    (req as any).userRole = decoded.role;
+    next();
+  } catch (err) {
+    res.status(401).json({ error: "Invalid token" });
+  }
+};
+
 router.post("/admin/login", async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body as { email?: string; password?: string };
@@ -175,4 +194,56 @@ router.post("/admin/create", async (req: Request, res: Response): Promise<void> 
   }
 });
 
+// New endpoints for admin dashboard
+router.get("/admin/dashboard", verifyToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const totalUsers = await prisma.user.count();
+    const totalIncidents = await prisma.incident.count();
+    const totalEvidence = await prisma.evidence.count();
+
+    const recentAuditLogs = await prisma.auditLog.findMany({
+      take: 10,
+      orderBy: { createdAt: "desc" },
+      include: { user: { select: { email: true, name: true } } },
+    });
+
+    res.json({
+      stats: { totalUsers, totalIncidents, totalEvidence },
+      recentAuditLogs: recentAuditLogs.map(log => ({
+        id: log.id,
+        action: log.action,
+        resource: log.resource,
+        userId: log.userId,
+        user: log.user,
+        createdAt: log.createdAt,
+      })),
+    });
+  } catch (err) {
+    console.error("Dashboard error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/admin/users", verifyToken, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        mfaEnabled: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json(users);
+  } catch (err) {
+    console.error("Users error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 export default router;
+
