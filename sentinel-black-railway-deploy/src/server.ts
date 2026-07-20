@@ -10,6 +10,7 @@ import incidentRoutes from "./routes/incidents";
 import timelineRoutes from "./routes/timeline";
 import patternRoutes from "./routes/patterns";
 import sharingRoutes from "./routes/sharing";
+import missionRoutes from "./routes/missions";
 
 const FALLBACK_JWT = "fallback_dev_secret";
 const jwtConfigured =
@@ -57,6 +58,9 @@ app.use("/timeline", timelineRoutes);
 app.use("/patterns", patternRoutes);
 app.use("/sharing", sharingRoutes);
 
+// Mission routes
+app.use("/", missionRoutes);
+
 // 404 fallback
 app.use((_req, res) => {
   res.status(404).json({ error: "Route not found" });
@@ -73,3 +77,4 @@ app.listen(config.port, () => {
 });
 
 export default app;
+
