@@ -1,153 +1,327 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore, evidenceApi, Evidence } from "../api/client";
-import Sidebar from "../components/Sidebar";
 
-function fileIcon(mime: string) {
-  if (mime.startsWith("image")) return "🖼";
-  if (mime.startsWith("video")) return "🎬";
-  if (mime.startsWith("audio")) return "🎙";
-  if (mime.includes("pdf")) return "📋";
-  return "📄";
-}
+import { useState } from "react";
 
 export default function EvidencePage() {
-  const { token } = useAuthStore();
-  const router = useRouter();
-  const [evidence, setEvidence] = useState<Evidence[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [selected, setSelected] = useState<Evidence | null>(null);
-  const [desc, setDesc] = useState("");
-  const [error, setError] = useState("");
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!token) { router.replace("/login"); return; }
-    load();
-  }, [token]);
-
-  async function load() {
-    setLoading(true);
-    const res = await evidenceApi.list();
-    setEvidence(res.data);
-    setLoading(false);
-  }
-
-  async function handleUpload(files: FileList | null) {
-    if (!files || files.length === 0) return;
-    setUploading(true); setError("");
-    try {
-      for (const file of Array.from(files)) {
-        const fd = new FormData();
-        fd.append("file", file);
-        if (desc) fd.append("description", desc);
-        await evidenceApi.upload(fd);
-      }
-      setDesc("");
-      await load();
-    } catch (err: any) {
-      setError(err?.response?.data?.error ?? "Upload failed");
-    } finally { setUploading(false); }
-  }
-
-  async function handleDelete(id: string) {
-    if (!confirm("Permanently delete this evidence?")) return;
-    await evidenceApi.delete(id);
-    setEvidence((prev) => prev.filter((e) => e.id !== id));
-    if (selected?.id === id) setSelected(null);
-  }
-
-  if (!token) return null;
+  const [section, setSection] = useState<"vault" | "add" | "situations" | "uploads" | "journal">("vault");
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
-      <Sidebar />
-      <main className="page-main">
-        <div className="page-header">
-          <div>
-            <h1 className="page-title">Evidence Vault</h1>
-            <p style={{ color: "var(--text-dim)", fontSize: "0.82rem", marginTop: "0.25rem" }}>Tamper-proof cryptographic storage</p>
-          </div>
-          <button className="btn btn-red" onClick={() => fileRef.current?.click()} disabled={uploading}>
-            {uploading ? "Sealing…" : "+ Upload Evidence"}
-          </button>
-        </div>
+    <div className="min-h-screen flex bg-black text-white">
+      {/* SIDEBAR */}
+      <aside className="w-64 border-r border-red-900/40 p-6 bg-black">
+        <h1 className="text-xl font-bold mb-6 tracking-wide">Evidence Vault</h1>
 
-        {/* Hidden file input */}
-        <input ref={fileRef} type="file" multiple accept="image/*,video/*,audio/*,.pdf,.txt" style={{ display: "none" }}
-          onChange={(e) => handleUpload(e.target.files)} />
+        <nav className="space-y-2">
+          {[
+            ["vault", "Evidence Vault"],
+            ["add", "Add Evidence"],
+            ["situations", "Situation Reports"],
+            ["uploads", "Voice Notes & Photos"],
+            ["journal", "Secure Journal"],
+          ].map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setSection(key as any)}
+              className={`w-full text-left px-3 py-2 rounded-md border 
+                ${
+                  section === key
+                    ? "border-red-600 bg-red-600/20 shadow-red-600/40 shadow-md"
+                    : "border-white/10 hover:border-red-600 hover:bg-red-600/10"
+                }`}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+      </aside>
 
-        {/* Upload drop zone */}
-        <div
-          className="card"
-          style={{ marginBottom: "1.5rem", border: "2px dashed var(--border2)", background: "var(--surface2)", textAlign: "center", padding: "2rem", cursor: "pointer" }}
-          onClick={() => fileRef.current?.click()}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => { e.preventDefault(); handleUpload(e.dataTransfer.files); }}
-        >
-          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🔒</div>
-          <p style={{ color: "var(--text-mid)", fontSize: "0.85rem" }}>
-            Drag & drop files here or click to upload
+      {/* MAIN CONTENT */}
+      <main className="flex-1 p-8 space-y-8">
+
+        {/* HEADER */}
+        <header>
+          <h2 className="text-2xl font-bold">
+            {section === "vault" && "Evidence Vault"}
+            {section === "add" && "Add Evidence"}
+            {section === "situations" && "Situation Reports"}
+            {section === "uploads" && "Voice Notes & Photos"}
+            {section === "journal" && "Secure Journal Vault"}
+          </h2>
+          <p className="text-white/70 border-l-2 border-red-600 pl-3 mt-2">
+            {section === "vault" &&
+              "Review and manage evidence, situation reports, and mission‑linked uploads."}
+            {section === "add" &&
+              "Log new evidence with attachments and chain‑of‑custody notes."}
+            {section === "situations" &&
+              "Track active situations, risks, and operational updates."}
+            {section === "uploads" &&
+              "Upload audio, images, and documents linked to evidence."}
+            {section === "journal" &&
+              "Write encrypted mission notes stored securely in the vault."}
           </p>
-          <p style={{ color: "var(--text-dim)", fontSize: "0.75rem", marginTop: "0.3rem" }}>
-            Photos · Videos · Audio · PDFs — All files are cryptographically sealed on upload
-          </p>
-          {error && <p className="error-msg" style={{ marginTop: "0.5rem" }}>⚠ {error}</p>}
-        </div>
+        </header>
 
-        {/* Evidence grid */}
-        {loading ? (
-          <p style={{ color: "var(--text-dim)" }}>Loading vault…</p>
-        ) : evidence.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "4rem", color: "var(--text-dim)" }}>
-            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🔐</div>
-            <p>Vault is empty. Upload your first piece of evidence.</p>
-          </div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "0.875rem" }}>
-            {evidence.map((ev) => (
-              <div key={ev.id} className="card" style={{ padding: "1.25rem", cursor: "pointer", transition: "border-color 0.15s", borderColor: selected?.id === ev.id ? "var(--red)" : "var(--border)" }}
-                onClick={() => setSelected(selected?.id === ev.id ? null : ev)}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
-                  <span style={{ fontSize: "1.75rem" }}>{fileIcon(ev.mimeType)}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: "0.85rem", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ev.originalName}</div>
-                    <div style={{ fontSize: "0.72rem", color: "var(--text-dim)", marginTop: "0.2rem" }}>
-                      {(ev.fileSize / 1024).toFixed(1)} KB · {new Date(ev.createdAt).toLocaleDateString()}
+        {/* SECTION: EVIDENCE VAULT */}
+        {section === "vault" && (
+          <div className="grid grid-cols-2 gap-6">
+            {/* Evidence List */}
+            <div className="bg-white/5 border border-white/10 p-5 rounded-lg backdrop-blur-sm">
+              <h3 className="font-semibold mb-3">Evidence Entries</h3>
+              <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                {[
+                  {
+                    id: "EV-001",
+                    title: "Entry gate damage",
+                    type: "Photo",
+                    location: "Sector A‑3",
+                    time: "2026‑07‑22 00:14",
+                    status: "Logged",
+                  },
+                  {
+                    id: "EV-002",
+                    title: "Operator incident report",
+                    type: "Audio",
+                    location: "Control room",
+                    time: "2026‑07‑22 00:18",
+                    status: "Pending",
+                  },
+                ].map((ev) => (
+                  <div
+                    key={ev.id}
+                    className="p-3 rounded-md border border-white/10 bg-white/5"
+                  >
+                    <div className="flex justify-between">
+                      <span className="font-medium">{ev.title}</span>
+                      <span className="text-red-500 text-xs border border-red-600 px-2 py-0.5 rounded-full">
+                        {ev.status}
+                      </span>
                     </div>
-                    {ev.description && <div style={{ fontSize: "0.78rem", color: "var(--text-mid)", marginTop: "0.3rem" }}>{ev.description}</div>}
+                    <p className="text-xs text-white/60">
+                      {ev.id} • {ev.type} • {ev.location}
+                    </p>
+                    <p className="text-xs text-white/60">{ev.time}</p>
                   </div>
-                </div>
-
-                {/* Chain of custody indicator */}
-                <div style={{ marginTop: "0.875rem", padding: "0.5rem 0.75rem", background: "var(--surface2)", borderRadius: "var(--radius)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "0.68rem", color: "var(--success)", fontWeight: 700, letterSpacing: "0.06em" }}>
-                    ✓ SEALED · SHA-256
-                  </span>
-                  <span style={{ fontSize: "0.68rem", color: "var(--text-dim)", fontFamily: "var(--mono)" }}>
-                    {ev.fileHash.slice(0, 10)}…
-                  </span>
-                </div>
-
-                {/* Expanded detail */}
-                {selected?.id === ev.id && (
-                  <div style={{ marginTop: "0.875rem", borderTop: "1px solid var(--border)", paddingTop: "0.875rem" }}>
-                    <div style={{ fontSize: "0.72rem", color: "var(--text-dim)", fontFamily: "var(--mono)", wordBreak: "break-all", marginBottom: "0.75rem" }}>
-                      SHA-256: {ev.fileHash}
-                    </div>
-                    <div style={{ fontSize: "0.72rem", color: "var(--text-dim)", marginBottom: "0.75rem" }}>
-                      Chain of custody: {(ev.chainOfCustody as any[]).length} entries
-                    </div>
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
-                      <a href={evidenceApi.fileUrl(ev.id)} target="_blank" rel="noreferrer" className="btn btn-ghost" style={{ fontSize: "0.75rem", padding: "0.35rem 0.7rem" }}>View File</a>
-                      <button className="btn btn-danger" style={{ fontSize: "0.75rem", padding: "0.35rem 0.7rem" }} onClick={(e) => { e.stopPropagation(); handleDelete(ev.id); }}>Delete</button>
-                    </div>
-                  </div>
-                )}
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Situation Reports */}
+            <div className="bg-white/5 border border-white/10 p-5 rounded-lg backdrop-blur-sm">
+              <h3 className="font-semibold mb-3">Situation Reports</h3>
+              <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                {[
+                  {
+                    id: "SR-014",
+                    summary: "Overflow detected in wash bay",
+                    status: "Active",
+                    risk: "Medium",
+                  },
+                  {
+                    id: "SR-015",
+                    summary: "Electrical fault flagged on dryer unit",
+                    status: "Investigating",
+                    risk: "High",
+                  },
+                ].map((sr) => (
+                  <div
+                    key={sr.id}
+                    className="p-3 rounded-md border border-white/10 bg-white/5"
+                  >
+                    <div className="flex justify-between">
+                      <span className="font-medium">{sr.summary}</span>
+                      <span className="text-red-500 text-xs border border-red-600 px-2 py-0.5 rounded-full">
+                        {sr.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-white/60">
+                      {sr.id} • Risk: {sr.risk}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SECTION: ADD EVIDENCE */}
+        {section === "add" && (
+          <div className="bg-white/5 border border-white/10 p-6 rounded-lg backdrop-blur-sm space-y-4">
+            <h3 className="font-semibold">New Evidence Entry</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-white/70">Evidence Type</label>
+                <select className="w-full mt-1 p-2 bg-black border border-white/20 rounded-md">
+                  <option>Photo</option>
+                  <option>Audio</option>
+                  <option>Document</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm text-white/70">Title</label>
+                <input
+                  className="w-full mt-1 p-2 bg-black border border-white/20 rounded-md"
+                  placeholder="Short title"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-white/70">Location</label>
+                <input
+                  className="w-full mt-1 p-2 bg-black border border-white/20 rounded-md"
+                  placeholder="Zone or area"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-white/70">Description</label>
+                <textarea
+                  className="w-full mt-1 p-2 bg-black border border-white/20 rounded-md"
+                  placeholder="Describe what was observed"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-white/70">Attachments</label>
+                <input type="file" className="w-full mt-1 p-2 bg-black border border-white/20 rounded-md" />
+              </div>
+
+              <div>
+                <label className="text-sm text-white/70">Chain of Custody</label>
+                <textarea
+                  className="w-full mt-1 p-2 bg-black border border-white/20 rounded-md"
+                  placeholder="Record handling details"
+                />
+              </div>
+
+              <button className="px-4 py-2 bg-red-600 rounded-md font-medium hover:bg-red-700">
+                Save Evidence
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* SECTION: SITUATION REPORTS */}
+        {section === "situations" && (
+          <div className="bg-white/5 border border-white/10 p-6 rounded-lg backdrop-blur-sm space-y-4">
+            <h3 className="font-semibold">New Situation Report</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-white/70">Summary</label>
+                <input
+                  className="w-full mt-1 p-2 bg-black border border-white/20 rounded-md"
+                  placeholder="Brief summary"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-white/70">Status</label>
+                <select className="w-full mt-1 p-2 bg-black border border-white/20 rounded-md">
+                  <option>Active</option>
+                  <option>Investigating</option>
+                  <option>Resolved</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm text-white/70">Risk Level</label>
+                <select className="w-full mt-1 p-2 bg-black border border-white/20 rounded-md">
+                  <option>Low</option>
+                  <option>Medium</option>
+                  <option>High</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm text-white/70">Actions Taken</label>
+                <textarea
+                  className="w-full mt-1 p-2 bg-black border border-white/20 rounded-md"
+                  placeholder="Describe actions taken"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-white/70">Required Actions</label>
+                <textarea
+                  className="w-full mt-1 p-2 bg-black border border-white/20 rounded-md"
+                  placeholder="List required actions"
+                />
+              </div>
+
+              <button className="px-4 py-2 bg-red-600 rounded-md font-medium hover:bg-red-700">
+                Save Situation Report
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* SECTION: UPLOADS */}
+        {section === "uploads" && (
+          <div className="bg-white/5 border border-white/10 p-6 rounded-lg backdrop-blur-sm space-y-4">
+            <h3 className="font-semibold">Upload Audio / Images</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-white/70">Upload Type</label>
+                <select className="w-full mt-1 p-2 bg-black border border-white/20 rounded-md">
+                  <option>Audio</option>
+                  <option>Image</option>
+                  <option>Document</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm text-white/70">Linked Evidence ID</label>
+                <input
+                  className="w-full mt-1 p-2 bg-black border border-white/20 rounded-md"
+                  placeholder="Optional"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-white/70">File</label>
+                <input type="file" className="w-full mt-1 p-2 bg-black border border-white/20 rounded-md" />
+              </div>
+
+              <button className="px-4 py-2 bg-red-600 rounded-md font-medium hover:bg-red-700">
+                Upload File
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* SECTION: JOURNAL */}
+        {section === "journal" && (
+          <div className="bg-white/5 border border-white/10 p-6 rounded-lg backdrop-blur-sm space-y-4">
+            <h3 className="font-semibold">Encrypted Journal Entry</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-white/70">Entry Title</label>
+                <input
+                  className="w-full mt-1 p-2 bg-black border border-white/20 rounded-md"
+                  placeholder="Title"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-white/70">Entry Text</label>
+                <textarea
+                  className="w-full mt-1 p-2 bg-black border border-white/20 rounded-md"
+                  placeholder="Begin your entry..."
+                />
+              </div>
+
+              <p className="text-xs text-white/60 border-l-2 border-white/20 pl-3">
+                This entry will be encrypted and stored securely in the Sentinel‑Black journal vault.
+              </p>
+
+              <button className="px-4 py-2 bg-red-600 rounded-md font-medium hover:bg-red-700">
+                Save Journal Entry
+              </button>
+            </div>
           </div>
         )}
       </main>
