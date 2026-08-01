@@ -1,11 +1,10 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { auth } from '../middleware/auth';
+import { authenticate, AuthRequest } from '../middleware/auth';
 import { logAudit } from '../services/audit';
 import {
   CreateCaseInput,
   UpdateCaseInput,
-  CaseQueryFilters,
   CaseStatus,
   CaseCategory,
   CaseSeverity,
@@ -13,6 +12,9 @@ import {
 
 const router = express.Router();
 const prisma = new PrismaClient();
+
+// Apply auth to all routes
+router.use(authenticate as any);
 
 // Validation helpers
 const validateCaseInput = (data: any): { valid: boolean; error?: string } => {
@@ -38,7 +40,7 @@ const validateCaseInput = (data: any): { valid: boolean; error?: string } => {
 };
 
 // GET all cases with filtering, pagination, and search
-router.get('/', auth, async (req: Request, res: Response) => {
+router.get('/', async (req: AuthRequest, res: Response) => {
   try {
     const {
       status,
@@ -86,7 +88,7 @@ router.get('/', auth, async (req: Request, res: Response) => {
       prisma.case.count({ where: filters }),
     ]);
 
-    await logAudit(req.user!.id, 'VIEW', 'CASE', undefined, { filters, limit: pageLimit, offset: pageOffset });
+    await logAudit(req.user!.userId, 'VIEW', 'CASE', null, { filters, limit: pageLimit, offset: pageOffset });
 
     return res.json({
       data: cases,
@@ -104,7 +106,7 @@ router.get('/', auth, async (req: Request, res: Response) => {
 });
 
 // POST create new case
-router.post('/', auth, async (req: Request, res: Response) => {
+router.post('/', async (req: AuthRequest, res: Response) => {
   try {
     const validation = validateCaseInput(req.body);
     if (!validation.valid) {
@@ -123,12 +125,12 @@ router.post('/', auth, async (req: Request, res: Response) => {
     const newCase = await prisma.case.create({
       data: {
         ...input,
-        ownerUserId: req.user!.id,
+        ownerUserId: req.user!.userId,
       },
       include: { owner: { select: { id: true, name: true, email: true } } },
     });
 
-    await logAudit(req.user!.id, 'CREATE', 'CASE', newCase.id, { title: input.title });
+    await logAudit(req.user!.userId, 'CREATE', 'CASE', newCase.id, { title: input.title });
 
     return res.status(201).json(newCase);
   } catch (err) {
@@ -138,7 +140,7 @@ router.post('/', auth, async (req: Request, res: Response) => {
 });
 
 // GET single case by ID
-router.get('/:id', auth, async (req: Request, res: Response) => {
+router.get('/:id', async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -151,7 +153,7 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Case not found' });
     }
 
-    await logAudit(req.user!.id, 'VIEW', 'CASE', id);
+    await logAudit(req.user!.userId, 'VIEW', 'CASE', id);
 
     return res.json(caseData);
   } catch (err) {
@@ -161,7 +163,7 @@ router.get('/:id', auth, async (req: Request, res: Response) => {
 });
 
 // PATCH update case
-router.patch('/:id', auth, async (req: Request, res: Response) => {
+router.patch('/:id', async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -176,7 +178,7 @@ router.patch('/:id', auth, async (req: Request, res: Response) => {
     }
 
     // Only owner or admin can update
-    if (existingCase.ownerUserId !== req.user!.id && req.user!.role !== 'ADMIN') {
+    if (existingCase.ownerUserId !== req.user!.userId && req.user!.role !== 'ADMIN') {
       return res.status(403).json({ error: 'Not authorized to update this case' });
     }
 
@@ -225,7 +227,7 @@ router.patch('/:id', auth, async (req: Request, res: Response) => {
       include: { owner: { select: { id: true, name: true, email: true } } },
     });
 
-    await logAudit(req.user!.id, 'UPDATE', 'CASE', id, updateData);
+    await logAudit(req.user!.userId, 'UPDATE', 'CASE', id, updateData);
 
     return res.json(updated);
   } catch (err) {
@@ -235,7 +237,7 @@ router.patch('/:id', auth, async (req: Request, res: Response) => {
 });
 
 // DELETE case
-router.delete('/:id', auth, async (req: Request, res: Response) => {
+router.delete('/:id', async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -249,12 +251,12 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
     }
 
     // Only owner or admin can delete
-    if (caseData.ownerUserId !== req.user!.id && req.user!.role !== 'ADMIN') {
+    if (caseData.ownerUserId !== req.user!.userId && req.user!.role !== 'ADMIN') {
       return res.status(403).json({ error: 'Not authorized to delete this case' });
     }
 
     await prisma.case.delete({ where: { id } });
-    await logAudit(req.user!.id, 'DELETE', 'CASE', id);
+    await logAudit(req.user!.userId, 'DELETE', 'CASE', id);
 
     return res.status(204).send();
   } catch (err) {
@@ -264,7 +266,7 @@ router.delete('/:id', auth, async (req: Request, res: Response) => {
 });
 
 // GET case stats/analytics
-router.get('/analytics/stats', auth, async (req: Request, res: Response) => {
+router.get('/analytics/stats', async (req: AuthRequest, res: Response) => {
   try {
     const [
       totalCases,
@@ -303,7 +305,7 @@ router.get('/analytics/stats', auth, async (req: Request, res: Response) => {
       createdLast7Days: recentCreated,
     };
 
-    await logAudit(req.user!.id, 'VIEW', 'CASE_ANALYTICS');
+    await logAudit(req.user!.userId, 'VIEW', 'CASE_ANALYTICS', null);
 
     return res.json(stats);
   } catch (err) {
@@ -313,7 +315,7 @@ router.get('/analytics/stats', auth, async (req: Request, res: Response) => {
 });
 
 // GET cases by user
-router.get('/user/:userId', auth, async (req: Request, res: Response) => {
+router.get('/user/:userId', async (req: AuthRequest, res: Response) => {
   try {
     const { userId } = req.params;
     const { limit = '10', offset = '0' } = req.query;
@@ -332,7 +334,7 @@ router.get('/user/:userId', auth, async (req: Request, res: Response) => {
       prisma.case.count({ where: { ownerUserId: userId } }),
     ]);
 
-    await logAudit(req.user!.id, 'VIEW', 'CASE', userId, { filter: 'by_user' });
+    await logAudit(req.user!.userId, 'VIEW', 'CASE', userId, { filter: 'by_user' });
 
     return res.json({
       data: cases,
