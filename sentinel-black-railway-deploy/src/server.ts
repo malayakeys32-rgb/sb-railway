@@ -11,6 +11,7 @@ import timelineRoutes from "./routes/timeline";
 import patternRoutes from "./routes/patterns";
 import sharingRoutes from "./routes/sharing";
 import missionRoutes from "./routes/missions";
+import caseRoutes from "./routes/cases";
 
 const FALLBACK_JWT = "fallback_dev_secret";
 const jwtConfigured =
@@ -57,6 +58,7 @@ app.use("/incidents", incidentRoutes);
 app.use("/timeline", timelineRoutes);
 app.use("/patterns", patternRoutes);
 app.use("/sharing", sharingRoutes);
+app.use("/cases", caseRoutes);
 
 // Mission routes
 app.use("/", missionRoutes);
