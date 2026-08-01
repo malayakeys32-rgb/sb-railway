@@ -1,7 +1,19 @@
+"use client";
 import type { ReactNode } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import "./admin-layout.css";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/admin/login");
+    }
+  }, [router]);
+
   return (
     <div className="admin-layout">
       <aside className="sidebar">
@@ -13,10 +25,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <nav className="sidebar-nav">
           <div className="nav-section">
             <h3>Operations</h3>
-            <a href="/admin/dashboard" className="nav-item">
+            <a href="/admin/home" className="nav-item">
               <span>🏠</span> Home
             </a>
-            <a href="/admin/dashboard" className="nav-item active">
+            <a href="/admin/dashboard" className="nav-item">
               <span>🎯</span> Today's Mission
             </a>
             <a href="/admin/events" className="nav-item">
