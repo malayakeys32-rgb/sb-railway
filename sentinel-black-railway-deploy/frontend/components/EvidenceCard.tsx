@@ -1,4 +1,6 @@
-export default function EvidenceCard({ title, meta, children }) {
+import type { ReactNode } from "react";
+
+export default function EvidenceCard({ title, meta, children }: { title: string; meta?: string; children: ReactNode }) {
   return (
     <div className="
       bg-sb-surface border border-sb-border rounded-md p-4
@@ -12,3 +14,4 @@ export default function EvidenceCard({ title, meta, children }) {
     </div>
   );
 }
+
