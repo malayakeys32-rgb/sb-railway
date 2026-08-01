@@ -24,6 +24,7 @@ model User {
   missions        Mission[]
   missionLogs     MissionLog[]
   teamAssignments TeamMember[]
+  cases           Case[]
 
   @@map("users")
 }
@@ -231,6 +232,25 @@ model ReadinessScore {
   @@map("readiness_scores")
 }
 
+model Case {
+  id          String      @id @default(cuid())
+  title       String
+  description String
+  category    CaseCategory
+  status      CaseStatus  @default(OPEN)
+  severity    CaseSeverity @default(LOW)
+  location    String
+  ownerUserId String
+  owner       User        @relation(fields: [ownerUserId], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([ownerUserId])
+  @@index([status])
+  @@index([category])
+  @@map("cases")
+}
+
 enum Role {
   ADMIN
   REPORTER
@@ -276,5 +296,28 @@ enum TeamMemberStatus {
   PENDING
   IN_PROGRESS
   COMPLETED
+}
+
+enum CaseStatus {
+  OPEN
+  ACTIVE
+  ESCALATED
+  CLOSED
+}
+
+enum CaseCategory {
+  INFESTATION
+  LANDLORD_NEGLIGENCE
+  HARASSMENT
+  WORKPLACE
+  SAFETY
+  OTHER
+}
+
+enum CaseSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
 }
 
