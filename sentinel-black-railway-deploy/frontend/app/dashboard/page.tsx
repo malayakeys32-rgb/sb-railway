@@ -1,122 +1,103 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore, incidentsApi, evidenceApi, patternsApi, Incident, Evidence, Pattern } from "../api/client";
-import Sidebar from "../components/Sidebar";
-import SecurityBanner from "../components/SecurityBanner";
+
+import EvidenceCard from "@/components/EvidenceCard";
+import Timeline from "@/components/Timeline";
+import NebulaPanel from "@/components/NebulaPanel";
+import { SBButton } from "@/components/ui/Button";
+
+const timelineEvents = [
+  { title: "Login anomaly detected", time: "12:04 PM · Case #4821" },
+  { title: "New device registered", time: "11:52 AM · Case #4821" },
+  { title: "Location mismatch flagged", time: "11:47 AM · Case #4799" },
+  { title: "Unusual data exfil pattern", time: "11:32 AM · Case #4763" }
+];
 
 export default function DashboardPage() {
-  const { token, user } = useAuthStore();
-  const router = useRouter();
-  const [incidents, setIncidents] = useState<Incident[]>([]);
-  const [evidence, setEvidence] = useState<Evidence[]>([]);
-  const [patterns, setPatterns] = useState<Pattern[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!token) { router.replace("/login"); return; }
-    Promise.all([incidentsApi.list(), evidenceApi.list(), patternsApi.list()])
-      .then(([i, e, p]) => { setIncidents(i.data); setEvidence(e.data); setPatterns(p.data); })
-      .finally(() => setLoading(false));
-  }, [token]);
-
-  if (!token) return null;
-
-  const critical = incidents.filter((i) => i.severity === "CRITICAL").length;
-  const open = incidents.filter((i) => i.status === "OPEN").length;
-  const escalating = patterns.filter((p) => p.isEscalating).length;
-
-  const stats = [
-    { label: "Total Incidents", value: incidents.length, color: "var(--text)", icon: "⚡" },
-    { label: "Critical", value: critical, color: "var(--critical)", icon: "🔴" },
-    { label: "Open Cases", value: open, color: "var(--high)", icon: "◎" },
-    { label: "Evidence Files", value: evidence.length, color: "var(--success)", icon: "🔒" },
-    { label: "Patterns", value: patterns.length, color: "var(--medium)", icon: "◈" },
-    { label: "Escalating", value: escalating, color: "var(--critical)", icon: "▲" },
-  ];
-
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
-      <Sidebar />
-      <main className="page-main">
-        <SecurityBanner />
-        <div className="page-header">
-          <div>
-            <h1 className="page-title">Command Center</h1>
-            <p style={{ color: "var(--text-dim)", fontSize: "0.82rem", marginTop: "0.25rem" }}>
-              {user?.maskedMode ? "Identity masked — operating securely" : `Operator: ${user?.name}`}
+    <div className="space-y-8">
+
+      {/* Header */}
+      <header className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Sentinel Black</h1>
+          <p className="text-sb-textSecondary mt-1">
+            Forensic‑intelligence overview across active cases and signals.
+          </p>
+        </div>
+
+        <div className="flex gap-3">
+          <SBButton variant="primary">New Case</SBButton>
+          <SBButton variant="ghost">View All Cases</SBButton>
+        </div>
+      </header>
+
+      {/* Top row: Active cases + Threat summary */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
+          <EvidenceCard title="Active Cases" meta="6 open · 2 high priority">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+              <div className="bg-sb-surfaceAlt rounded-md p-3 border border-sb-border">
+                <p className="text-xs text-sb-textSecondary">Case #4821</p>
+                <p className="font-semibold mt-1">Account takeover cluster</p>
+                <p className="text-xs text-sb-amber mt-1">Priority: High</p>
+              </div>
+              <div className="bg-sb-surfaceAlt rounded-md p-3 border border-sb-border">
+                <p className="text-xs text-sb-textSecondary">Case #4799</p>
+                <p className="font-semibold mt-1">Location mismatch pattern</p>
+                <p className="text-xs text-sb-blue mt-1">Priority: Medium</p>
+              </div>
+              <div className="bg-sb-surfaceAlt rounded-md p-3 border border-sb-border">
+                <p className="text-xs text-sb-textSecondary">Case #4763</p>
+                <p className="font-semibold mt-1">Data exfil anomaly</p>
+                <p className="text-xs text-sb-red mt-1">Priority: Critical</p>
+              </div>
+            </div>
+          </EvidenceCard>
+        </div>
+
+        <EvidenceCard title="Threat Summary" meta="Last 24 hours">
+          <div className="grid grid-cols-2 gap-3 mt-3 text-sm">
+            <div>
+              <p className="text-sb-textSecondary">Signals processed</p>
+              <p className="text-xl font-semibold">14,203</p>
+            </div>
+            <div>
+              <p className="text-sb-textSecondary">Anomalies flagged</p>
+              <p className="text-xl font-semibold text-sb-amber">37</p>
+            </div>
+            <div>
+              <p className="text-sb-textSecondary">Critical events</p>
+              <p className="text-xl font-semibold text-sb-red">5</p>
+            </div>
+            <div>
+              <p className="text-sb-textSecondary">Cases updated</p>
+              <p className="text-xl font-semibold text-sb-blue">9</p>
+            </div>
+          </div>
+        </EvidenceCard>
+      </section>
+
+      {/* Middle row: Timeline + Nebula insight */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <EvidenceCard title="Recent Events Timeline" meta="Correlated across cases">
+            <div className="mt-4">
+              <Timeline events={timelineEvents} />
+            </div>
+          </EvidenceCard>
+        </div>
+
+        <NebulaPanel agent="Analyst Agent">
+          <div className="bg-sb-surface p-3 rounded-md border border-sb-border">
+            <p className="text-sm text-sb-textSecondary">
+              “Three active cases share overlapping device fingerprints and login patterns.
+              Recommend clustering into a single investigation.”
             </p>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.75rem", color: "var(--text-dim)" }}>
-            <div className="status-dot" />
-            LIVE
+          <div className="bg-sb-surfaceAlt p-3 rounded-md border border-sb-border mt-3">
+            <p className="text-xs text-sb-textSecondary mb-1">Suggested action</p>
+            <p className="text-sm">
+              Merge Case #4821, #4799, and #4763 into a unified ‘Account Takeover Cluster’
+              workspace.
+            </p>
           </div>
-        </div>
-
-        {/* Stats grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "0.875rem", marginBottom: "2.5rem" }}>
-          {stats.map((s) => (
-            <div key={s.label} className="card" style={{ padding: "1.25rem", textAlign: "center" }}>
-              <div style={{ fontSize: "1.5rem", marginBottom: "0.25rem" }}>{s.icon}</div>
-              <div style={{ fontSize: "2rem", fontWeight: 800, color: s.color, lineHeight: 1 }}>
-                {loading ? "—" : s.value}
-              </div>
-              <div style={{ color: "var(--text-dim)", fontSize: "0.72rem", marginTop: "0.4rem", textTransform: "uppercase", letterSpacing: "0.06em" }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
-          {/* Recent incidents */}
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.875rem" }}>
-              <h2 style={{ fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-dim)" }}>Recent Incidents</h2>
-              <button className="btn btn-ghost" onClick={() => router.push("/incidents")} style={{ fontSize: "0.75rem", padding: "0.3rem 0.7rem" }}>View All</button>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              {loading ? <p style={{ color: "var(--text-dim)", fontSize: "0.85rem" }}>Loading…</p> :
-                incidents.slice(0, 5).map((inc) => (
-                  <div key={inc.id} className="card-sm" style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "0.75rem" }}
-                    onClick={() => router.push(`/incidents/${inc.id}`)}>
-                    <div style={{ width: 3, alignSelf: "stretch", borderRadius: 2, flexShrink: 0, background: inc.severity === "CRITICAL" ? "var(--critical)" : inc.severity === "HIGH" ? "var(--high)" : inc.severity === "MEDIUM" ? "var(--medium)" : "var(--low)" }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: "0.85rem", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{inc.title}</div>
-                      <div style={{ fontSize: "0.72rem", color: "var(--text-dim)", marginTop: "0.1rem" }}>{new Date(inc.occurredAt).toLocaleDateString()}</div>
-                    </div>
-                    <span className={`badge badge-${inc.status.toLowerCase()}`}>{inc.status}</span>
-                  </div>
-                ))
-              }
-              {!loading && incidents.length === 0 && <p style={{ color: "var(--text-dim)", fontSize: "0.85rem" }}>No incidents recorded.</p>}
-            </div>
-          </div>
-
-          {/* Recent evidence */}
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.875rem" }}>
-              <h2 style={{ fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-dim)" }}>Evidence Vault</h2>
-              <button className="btn btn-ghost" onClick={() => router.push("/evidence")} style={{ fontSize: "0.75rem", padding: "0.3rem 0.7rem" }}>View All</button>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              {loading ? <p style={{ color: "var(--text-dim)", fontSize: "0.85rem" }}>Loading…</p> :
-                evidence.slice(0, 5).map((ev) => (
-                  <div key={ev.id} className="card-sm" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                    <span style={{ fontSize: "1.1rem" }}>
-                      {ev.mimeType.startsWith("image") ? "🖼" : ev.mimeType.startsWith("video") ? "🎬" : ev.mimeType.startsWith("audio") ? "🎙" : "📄"}
-                    </span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: "0.85rem", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ev.originalName}</div>
-                      <div style={{ fontSize: "0.72rem", color: "var(--text-dim)", marginTop: "0.1rem" }}>{(ev.fileSize / 1024).toFixed(1)} KB · {new Date(ev.createdAt).toLocaleDateString()}</div>
-                    </div>
-                    {ev.isSealed && <span style={{ fontSize: "0.65rem", color: "var(--success)", fontWeight: 700, letterSpacing: "0.06em" }}>SEALED</span>}
-                  </div>
-                ))
-              }
-              {!loading && evidence.length === 0 && <p style={{ color: "var(--text-dim)", fontSize: "0.85rem" }}>No evidence uploaded.</p>}
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-}
