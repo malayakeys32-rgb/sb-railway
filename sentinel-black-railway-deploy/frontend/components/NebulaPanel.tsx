@@ -1,6 +1,12 @@
+import { ReactNode } from "react";
 import { SBInput } from "./ui/Input";
 
-export default function NebulaPanel({ agent, children }) {
+interface NebulaPanelProps {
+  agent: ReactNode;
+  children: ReactNode;
+}
+
+export default function NebulaPanel({ agent, children }: NebulaPanelProps) {
   return (
     <div className="
       bg-sb-surfaceAlt border border-sb-border rounded-lg p-4
