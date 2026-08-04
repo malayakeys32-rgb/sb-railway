@@ -1,16 +1,23 @@
-"use client";
+export default function StatsGrid() {
+  const stats = [
+    { label: "Active Processes", value: 128 },
+    { label: "AI Events Today", value: 3421 },
+    { label: "Threat Flags", value: 3 },
+    { label: "System Uptime", value: "99.998%" },
+  ];
 
-import EvidenceCard from "@/components/EvidenceCard";
-import Timeline from "@/components/Timeline";
-import NebulaPanel from "@/components/NebulaPanel";
-import { SBButton } from "@/components/ui/Button";
+  return (
+    <div className="stats-grid">
+      {stats.map((s, i) => (
+        <div key={i} className="stats-card">
+          <div className="stats-value">{s.value}</div>
+          <div className="stats-label">{s.label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
-const timelineEvents = [
-  { title: "Login anomaly detected", time: "12:04 PM · Case #4821" },
-  { title: "New device registered", time: "11:52 AM · Case #4821" },
-  { title: "Location mismatch flagged", time: "11:47 AM · Case #4799" },
-  { title: "Unusual data exfil pattern", time: "11:32 AM · Case #4763" }
-];
 
 export default function DashboardPage() {
   return (
