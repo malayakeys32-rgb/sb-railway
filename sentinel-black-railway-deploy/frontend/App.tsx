@@ -1,41 +1,60 @@
 export default function App() {
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "radial-gradient(circle at top, #0a0a14, #000)",
-        color: "#fff",
-        fontFamily: "Inter, sans-serif",
-        padding: "20px",
-      }}
-    >
-      {/* HEADER */}
-      <Header />
-
-      {/* MAIN DASHBOARD GRID */}
+    <div style={{ position: "relative", minHeight: "100vh" }}>
+      {/* NEON ANIMATED BACKGROUND */}
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "260px 1fr 1fr",
-          gap: "20px",
-          marginTop: "20px",
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(130deg, #0a0a14, #12001f, #001b29)",
+          animation: "neonPulse 8s ease-in-out infinite",
+          backgroundSize: "300% 300%",
+          zIndex: -1,
+        }}
+      />
+
+      {/* KEYFRAMES */}
+      <style>
+        {`
+          @keyframes neonPulse {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+        `}
+      </style>
+
+      {/* MAIN CONTENT */}
+      <div
+        style={{
+          color: "#fff",
+          fontFamily: "Inter, sans-serif",
+          padding: "20px",
         }}
       >
-        {/* LEFT SIDEBAR */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <SystemStatus />
-          <ActionPanel />
-        </div>
+        <Header />
 
-        {/* CENTER PANEL */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <ThreatFeed />
-          <NebulaModule />
-        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "260px 1fr 1fr",
+            gap: "20px",
+            marginTop: "20px",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <SystemStatus />
+            <ActionPanel />
+          </div>
 
-        {/* RIGHT PANEL */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <AgentsPanel />
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <ThreatFeed />
+            <NebulaModule />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <AgentsPanel />
+          </div>
         </div>
       </div>
     </div>
