@@ -1,9 +1,34 @@
-export default function StatsGrid() {
+'use client';
+
+import { EvidenceCard } from '@/components/evidence-card';
+import { SBButton } from '@/components/button';
+import { Timeline } from '@/components/timeline';
+import { NebulaPanel } from '@/components/nebula-panel';
+
+const timelineEvents = [
+  {
+    timestamp: '14:32',
+    title: 'Case #4821 - New login from unknown device',
+    status: 'alert',
+  },
+  {
+    timestamp: '13:18',
+    title: 'Case #4799 - Geo-velocity anomaly detected',
+    status: 'warning',
+  },
+  {
+    timestamp: '12:05',
+    title: 'Case #4763 - Unusual data export pattern',
+    status: 'alert',
+  },
+];
+
+function StatsGrid() {
   const stats = [
-    { label: "Active Processes", value: 128 },
-    { label: "AI Events Today", value: 3421 },
-    { label: "Threat Flags", value: 3 },
-    { label: "System Uptime", value: "99.998%" },
+    { label: 'Active Processes', value: 128 },
+    { label: 'AI Events Today', value: 3421 },
+    { label: 'Threat Flags', value: 3 },
+    { label: 'System Uptime', value: '99.998%' },
   ];
 
   return (
@@ -17,7 +42,6 @@ export default function StatsGrid() {
     </div>
   );
 }
-
 
 export default function DashboardPage() {
   return (
@@ -37,6 +61,9 @@ export default function DashboardPage() {
           <SBButton variant="ghost">View All Cases</SBButton>
         </div>
       </header>
+
+      {/* Stats Grid */}
+      <StatsGrid />
 
       {/* Top row: Active cases + Threat summary */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -97,14 +124,20 @@ export default function DashboardPage() {
         <NebulaPanel agent="Analyst Agent">
           <div className="bg-sb-surface p-3 rounded-md border border-sb-border">
             <p className="text-sm text-sb-textSecondary">
-              “Three active cases share overlapping device fingerprints and login patterns.
-              Recommend clustering into a single investigation.”
+              "Three active cases share overlapping device fingerprints and login patterns.
+              Recommend clustering into a single investigation."
             </p>
           </div>
           <div className="bg-sb-surfaceAlt p-3 rounded-md border border-sb-border mt-3">
             <p className="text-xs text-sb-textSecondary mb-1">Suggested action</p>
             <p className="text-sm">
-              Merge Case #4821, #4799, and #4763 into a unified ‘Account Takeover Cluster’
+              Merge Case #4821, #4799, and #4763 into a unified 'Account Takeover Cluster'
               workspace.
             </p>
           </div>
+        </NebulaPanel>
+      </section>
+    </div>
+  );
+}
+
