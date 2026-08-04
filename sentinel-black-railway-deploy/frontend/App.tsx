@@ -13,7 +13,6 @@ export default function App() {
         }}
       />
 
-      {/* KEYFRAMES */}
       <style>
         {`
           @keyframes neonPulse {
@@ -33,29 +32,7 @@ export default function App() {
         }}
       >
         <Header />
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "260px 1fr 1fr",
-            gap: "20px",
-            marginTop: "20px",
-          }}
-        >
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-            <SystemStatus />
-            <ActionPanel />
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-            <ThreatFeed />
-            <NebulaModule />
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-            <AgentsPanel />
-          </div>
-        </div>
+        <Dashboard />
       </div>
     </div>
   );
@@ -97,6 +74,61 @@ function Header() {
         Tactical Intelligence • Nebula AI • Device Forensics
       </p>
     </header>
+  );
+}
+
+/* -----------------------------------------------------------
+   DASHBOARD GRID
+----------------------------------------------------------- */
+function Dashboard() {
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "260px 1fr 1fr",
+        gap: "20px",
+        marginTop: "20px",
+      }}
+    >
+      <Sidebar />
+      <CenterPanel />
+      <RightPanel />
+    </div>
+  );
+}
+
+/* -----------------------------------------------------------
+   SIDEBAR
+----------------------------------------------------------- */
+function Sidebar() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      <SystemStatus />
+      <ActionPanel />
+    </div>
+  );
+}
+
+/* -----------------------------------------------------------
+   CENTER PANEL
+----------------------------------------------------------- */
+function CenterPanel() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      <ThreatFeed />
+      <NebulaModule />
+    </div>
+  );
+}
+
+/* -----------------------------------------------------------
+   RIGHT PANEL
+----------------------------------------------------------- */
+function RightPanel() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      <AgentsPanel />
+    </div>
   );
 }
 
