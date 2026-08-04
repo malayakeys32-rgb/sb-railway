@@ -1,24 +1,27 @@
 'use client';
 
-import { EvidenceCard } from '@/components/evidence-card';
-import { SBButton } from '@/components/button';
-import { Timeline } from '@/components/timeline';
-import { NebulaPanel } from '@/components/nebula-panel';
+import EvidenceCard from '@/components/EvidenceCard';
+import { SBButton } from '@/components/ui/Button';
+import Timeline from '@/components/Timeline';
+import NebulaPanel from '@/components/NebulaPanel';
 
 const timelineEvents = [
   {
     timestamp: '14:32',
     title: 'Case #4821 - New login from unknown device',
+    time: '14:32',
     status: 'alert',
   },
   {
     timestamp: '13:18',
     title: 'Case #4799 - Geo-velocity anomaly detected',
+    time: '13:18',
     status: 'warning',
   },
   {
     timestamp: '12:05',
     title: 'Case #4763 - Unusual data export pattern',
+    time: '12:05',
     status: 'alert',
   },
 ];
