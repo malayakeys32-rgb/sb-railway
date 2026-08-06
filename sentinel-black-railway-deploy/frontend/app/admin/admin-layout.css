@@ -1,14 +1,19 @@
 .admin-layout {
   display: flex;
   min-height: 100vh;
-  background: var(--bg);
+  background: linear-gradient(135deg, #0a0a1a 0%, #16213e 25%, #1a0f2e 50%, #2d1b69 100%);
+  background-attachment: fixed;
   color: var(--text);
 }
 
 .sidebar {
   width: 280px;
-  background: var(--surface1);
-  border-right: 1px solid var(--border);
+  background: rgba(10, 10, 26, 0.9);
+  background-image: 
+    linear-gradient(135deg, rgba(217, 70, 239, 0.1), transparent),
+    linear-gradient(45deg, rgba(0, 255, 255, 0.05), transparent);
+  border-right: 2px solid;
+  border-image: linear-gradient(180deg, #ff4d8d, #00ffff) 1;
   display: flex;
   flex-direction: column;
   padding: 1.5rem 0;
@@ -17,11 +22,14 @@
   height: 100vh;
   left: 0;
   top: 0;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 40px rgba(217, 70, 239, 0.2);
+  z-index: 100;
 }
 
 .sidebar-header {
   padding: 0 1.5rem 2rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(217, 70, 239, 0.3);
   margin-bottom: 1.5rem;
 }
 
@@ -29,6 +37,8 @@
   margin: 0;
   font-size: 1.3rem;
   font-weight: 700;
+  font-family: 'Orbitron', sans-serif;
+  text-shadow: 0 0 10px rgba(255, 77, 141, 0.4);
 }
 
 .sidebar-header p {
@@ -56,6 +66,9 @@
   color: var(--text-dim);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  background: linear-gradient(90deg, #ff4d8d, transparent);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 77, 141, 0.2);
 }
 
 .nav-item {
@@ -63,24 +76,29 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  border-radius: var(--radius);
+  border-radius: 8px;
   color: var(--text-dim);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: all 0.15s;
+  transition: all 0.3s ease;
   margin-bottom: 0.25rem;
+  border-left: 3px solid transparent;
 }
 
 .nav-item:hover {
-  background: var(--surface2);
+  background: rgba(217, 70, 239, 0.2);
   color: var(--text);
+  border-left-color: #ff4d8d;
+  text-shadow: 0 0 8px rgba(255, 77, 141, 0.5);
 }
 
 .nav-item.active {
-  background: rgba(200, 0, 26, 0.15);
-  color: var(--red);
+  background: rgba(255, 77, 141, 0.2);
+  color: var(--text);
   font-weight: 700;
+  border-left-color: var(--neon-pink);
+  box-shadow: inset 0 0 10px rgba(255, 77, 141, 0.2);
 }
 
 .nav-item span {
@@ -89,11 +107,12 @@
   justify-content: center;
   font-size: 1.1rem;
   min-width: 24px;
+  filter: drop-shadow(0 0 4px rgba(255, 77, 141, 0.3));
 }
 
 .sidebar-footer {
   padding: 1.5rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(217, 70, 239, 0.3);
   margin-top: auto;
 }
 
@@ -102,17 +121,18 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  border-radius: var(--radius);
+  border-radius: 8px;
   color: var(--text-dim);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: all 0.15s;
+  transition: all 0.3s ease;
 }
 
 .settings-link:hover {
-  background: var(--surface2);
+  background: rgba(0, 255, 255, 0.1);
   color: var(--text);
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
 }
 
 .admin-main {
@@ -120,6 +140,28 @@
   margin-left: 280px;
   overflow-y: auto;
   min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(to bottom, transparent, rgba(217, 70, 239, 0.03));
+}
+
+/* Scrollbar styling */
+.admin-main::-webkit-scrollbar {
+  width: 8px;
+}
+
+.admin-main::-webkit-scrollbar-track {
+  background: rgba(10, 10, 26, 0.5);
+}
+
+.admin-main::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #ff4d8d, #00ffff);
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(217, 70, 239, 0.5);
+}
+
+.admin-main::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #00ffff, #ff4d8d);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
 }
 
 @media (max-width: 1024px) {
@@ -142,11 +184,13 @@
     height: auto;
     position: static;
     border-right: none;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 2px solid;
+    border-image: linear-gradient(90deg, #ff4d8d, #00ffff) 1;
   }
 
   .admin-main {
     margin-left: 0;
+    padding: 1rem;
   }
 }
 

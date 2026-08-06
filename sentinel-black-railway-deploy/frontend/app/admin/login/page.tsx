@@ -35,6 +35,7 @@ export default function AdminLoginPage() {
       } else {
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
+        // Fixed: Navigate to dashboard after successful login
         router.push("/admin/dashboard");
       }
     } catch (err: any) {
@@ -54,6 +55,7 @@ export default function AdminLoginPage() {
       });
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
+      // Fixed: Navigate to dashboard after MFA verification
       router.push("/admin/dashboard");
     } catch (err: any) {
       setError(err?.response?.data?.error ?? "MFA verification failed");
@@ -110,20 +112,90 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)", padding: "1rem", position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(200,0,26,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(200,0,26,0.03) 1px, transparent 1px)", backgroundSize: "40px 40px", pointerEvents: "none" }} />
+    <div style={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "linear-gradient(135deg, #0a0a1a 0%, #16213e 25%, #1a0f2e 50%, #2d1b69 100%)",
+      backgroundAttachment: "fixed",
+      padding: "1rem",
+      position: "relative",
+      overflow: "hidden",
+    }}>
+      {/* Animated Background Elements */}
+      <div style={{
+        position: "absolute",
+        inset: 0,
+        backgroundImage: "linear-gradient(rgba(217, 70, 239, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(217, 70, 239, 0.03) 1px, transparent 1px)",
+        backgroundSize: "50px 50px",
+        pointerEvents: "none",
+        animation: "floatAnim 20s infinite",
+      }} />
 
-      <div style={{ width: "100%", maxWidth: 450, position: "relative" }}>
+      {/* Floating Orbs */}
+      <div style={{
+        position: "absolute",
+        top: "10%",
+        left: "5%",
+        width: "200px",
+        height: "200px",
+        borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(255, 77, 141, 0.2), transparent 70%)",
+        filter: "blur(40px)",
+        animation: "floatAnim 8s infinite",
+      }} />
+      <div style={{
+        position: "absolute",
+        bottom: "10%",
+        right: "5%",
+        width: "250px",
+        height: "250px",
+        borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(0, 255, 255, 0.15), transparent 70%)",
+        filter: "blur(50px)",
+        animation: "floatAnim 10s infinite 2s",
+      }} />
+
+      <div style={{ width: "100%", maxWidth: 450, position: "relative", zIndex: 10 }}>
+        {/* Logo Section */}
         <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.75rem" }}>
-            <Image src="/logo-black.png" alt="Sentinel Black" width={140} height={140} priority style={{ objectFit: "contain" }} />
+            <Image
+              src="/logo-black.png"
+              alt="Sentinel Black"
+              width={140}
+              height={140}
+              priority
+              style={{
+                objectFit: "contain",
+                filter: "drop-shadow(0 0 20px rgba(255, 77, 141, 0.5))",
+                animation: "floatAnim 4s ease-in-out infinite",
+              }}
+            />
           </div>
-          <div style={{ color: "var(--text-dim)", fontSize: "0.8rem", marginTop: "0.4rem", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-            ADMIN OPERATIONS
+          <div style={{
+            color: "var(--text-dim)",
+            fontSize: "0.8rem",
+            marginTop: "0.4rem",
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            fontWeight: 700,
+            background: "linear-gradient(90deg, #ff4d8d, #00ffff)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+          }}>
+            Admin Operations
           </div>
         </div>
 
-        <div className="card" style={{ padding: "2rem", border: "1px solid var(--border2)" }}>
+        {/* Login Card */}
+        <div className="card" style={{
+          padding: "2rem",
+          border: "2px solid",
+          borderImage: "linear-gradient(135deg, #ff4d8d, #00ffff) 1",
+          boxShadow: "0 0 40px rgba(217, 70, 239, 0.3), inset 0 0 20px rgba(255, 77, 141, 0.05)",
+        }}>
           {step === "login" && (
             <>
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -154,7 +226,12 @@ export default function AdminLoginPage() {
 
                 {error && <p className="error-msg">⚠ {error}</p>}
 
-                <button className="btn btn-red" onClick={handleAdminLogin} disabled={loading} style={{ width: "100%", justifyContent: "center", padding: "0.7rem" }}>
+                <button
+                  className="btn btn-red"
+                  onClick={handleAdminLogin}
+                  disabled={loading}
+                  style={{ width: "100%", justifyContent: "center", padding: "0.7rem" }}
+                >
                   {loading ? "Authenticating…" : "Secure Access"}
                 </button>
 
@@ -163,7 +240,14 @@ export default function AdminLoginPage() {
                     setStep("reset");
                     setError("");
                   }}
-                  style={{ background: "none", border: "none", color: "var(--red)", cursor: "pointer", fontSize: "0.85rem", textDecoration: "underline" }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--neon-pink)",
+                    cursor: "pointer",
+                    fontSize: "0.85rem",
+                    textDecoration: "underline",
+                  }}
                   disabled={loading}
                 >
                   Forgot password?
@@ -174,7 +258,7 @@ export default function AdminLoginPage() {
 
           {step === "mfa" && (
             <>
-              <h3 style={{ marginBottom: "1rem", color: "var(--text)" }}>Two-Factor Authentication</h3>
+              <h3 style={{ marginBottom: "1rem", color: "var(--text)", fontFamily: "'Orbitron', sans-serif" }}>Two-Factor Authentication</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                 <p style={{ fontSize: "0.9rem", color: "var(--text-dim)" }}>Enter the 6-digit code sent to your email.</p>
                 <div className="form-group">
@@ -193,7 +277,12 @@ export default function AdminLoginPage() {
 
                 {error && <p className="error-msg">⚠ {error}</p>}
 
-                <button className="btn btn-red" onClick={handleMFAVerify} disabled={loading} style={{ width: "100%", justifyContent: "center", padding: "0.7rem" }}>
+                <button
+                  className="btn btn-red"
+                  onClick={handleMFAVerify}
+                  disabled={loading}
+                  style={{ width: "100%", justifyContent: "center", padding: "0.7rem" }}
+                >
                   {loading ? "Verifying…" : "Verify Code"}
                 </button>
 
@@ -214,7 +303,7 @@ export default function AdminLoginPage() {
 
           {step === "reset" && !resetToken && (
             <>
-              <h3 style={{ marginBottom: "1rem", color: "var(--text)" }}>Password Recovery</h3>
+              <h3 style={{ marginBottom: "1rem", color: "var(--text)", fontFamily: "'Orbitron', sans-serif" }}>Password Recovery</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                 <p style={{ fontSize: "0.9rem", color: "var(--text-dim)" }}>Enter your admin email to receive a recovery link.</p>
                 <div className="form-group">
@@ -232,7 +321,12 @@ export default function AdminLoginPage() {
 
                 {error && <p className="error-msg">⚠ {error}</p>}
 
-                <button className="btn btn-red" onClick={handleForgotPassword} disabled={loading} style={{ width: "100%", justifyContent: "center", padding: "0.7rem" }}>
+                <button
+                  className="btn btn-red"
+                  onClick={handleForgotPassword}
+                  disabled={loading}
+                  style={{ width: "100%", justifyContent: "center", padding: "0.7rem" }}
+                >
                   {loading ? "Sending…" : "Send Recovery Link"}
                 </button>
 
@@ -253,7 +347,7 @@ export default function AdminLoginPage() {
 
           {step === "reset" && resetToken && (
             <>
-              <h3 style={{ marginBottom: "1rem", color: "var(--text)" }}>Reset Password</h3>
+              <h3 style={{ marginBottom: "1rem", color: "var(--text)", fontFamily: "'Orbitron', sans-serif" }}>Reset Password</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                 <div className="form-group">
                   <label className="form-label">New Password</label>
@@ -281,7 +375,12 @@ export default function AdminLoginPage() {
 
                 {error && <p className="error-msg">⚠ {error}</p>}
 
-                <button className="btn btn-red" onClick={handleResetPassword} disabled={loading} style={{ width: "100%", justifyContent: "center", padding: "0.7rem" }}>
+                <button
+                  className="btn btn-red"
+                  onClick={handleResetPassword}
+                  disabled={loading}
+                  style={{ width: "100%", justifyContent: "center", padding: "0.7rem" }}
+                >
                   {loading ? "Resetting…" : "Reset Password"}
                 </button>
               </div>
@@ -289,7 +388,14 @@ export default function AdminLoginPage() {
           )}
         </div>
 
-        <p style={{ textAlign: "center", color: "var(--text-dim)", fontSize: "0.72rem", marginTop: "1.5rem", letterSpacing: "0.04em" }}>
+        <p style={{
+          textAlign: "center",
+          color: "var(--text-dim)",
+          fontSize: "0.72rem",
+          marginTop: "1.5rem",
+          letterSpacing: "0.04em",
+          fontWeight: 700,
+        }}>
           ADMIN ACCESS RESTRICTED · ALL ACTIVITY LOGGED
         </p>
       </div>

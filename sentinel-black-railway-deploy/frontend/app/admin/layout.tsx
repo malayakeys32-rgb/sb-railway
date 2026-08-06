@@ -9,7 +9,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) {
+    // Allow access to login page without token
+    if (!token && !window.location.pathname.includes("/admin/login")) {
       router.push("/admin/login");
     }
   }, [router]);
@@ -18,7 +19,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <div className="admin-layout">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h2>🔴 Sentinel</h2>
+          <h2 style={{
+            background: "linear-gradient(90deg, #ff4d8d, #00ffff)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            margin: 0,
+          }}>
+            🔴 Sentinel
+          </h2>
           <p>Mission Control</p>
         </div>
 
