@@ -2,11 +2,335 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;500;700&display=swap');
+
+:root {
+  /* Vaporwave Pastel Colors */
+  --bg: linear-gradient(135deg, #0a0a1a 0%, #16213e 25%, #1a0f2e 50%, #2d1b69 100%);
+  --bg-solid: #0f0a1a;
+  --surface1: rgba(20, 10, 40, 0.85);
+  --surface2: rgba(50, 20, 80, 0.5);
+  --surface3: rgba(138, 43, 226, 0.1);
+  
+  --border: rgba(200, 100, 200, 0.2);
+  --border2: rgba(138, 43, 226, 0.3);
+  
+  --text: #f5e6ff;
+  --text-dim: #c8a8e8;
+  
+  /* Vaporwave Neon Accents */
+  --neon-pink: #ff4d8d;
+  --neon-cyan: #00ffff;
+  --neon-purple: #d946ef;
+  --neon-blue: #2dd4bf;
+  --red: #ff4d8d;
+  --yellow: #ffd700;
+  --green: #4CD964;
+  
+  --radius: 12px;
+}
+
 html {
   color-scheme: dark;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: #0A0A0C;
-  color: #F5F6FA;
+  background: #0f0a1a;
+  color: var(--text);
+  font-family: 'Roboto', 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
+
+/* ============================================
+   VAPORWAVE ANIMATED BACKGROUND
+============================================ */
+
+@keyframes vaporwaveGlow {
+  0%, 100% {
+    background-position: 0% 50%;
+    filter: brightness(1);
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: brightness(1.1);
+  }
+}
+
+@keyframes floatAnim {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glitchText {
+  0%, 100% {
+    text-shadow: 0 0 10px var(--neon-pink), 0 0 20px rgba(255, 77, 141, 0.5);
+  }
+  50% {
+    text-shadow: 0 0 20px var(--neon-cyan), 0 0 40px rgba(0, 255, 255, 0.5);
+  }
+}
+
+@keyframes scanlines {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 100px;
+  }
+}
+
+/* ============================================
+   FORM ELEMENTS - VAPORWAVE STYLE
+============================================ */
+
+.form-group {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: linear-gradient(90deg, var(--neon-pink), var(--neon-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.form-input {
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--neon-purple);
+  border-radius: 8px;
+  background: rgba(10, 10, 26, 0.8);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: 'Roboto', sans-serif;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(217, 70, 239, 0.2);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--neon-cyan);
+  background: rgba(20, 10, 50, 0.95);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), inset 0 0 10px rgba(0, 255, 255, 0.1);
+}
+
+.form-input::placeholder {
+  color: rgba(200, 168, 232, 0.6);
+}
+
+.form-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(50, 20, 80, 0.4);
+}
+
+/* ============================================
+   CARDS & CONTAINERS - GLASS-MORPHISM
+============================================ */
+
+.card {
+  background: rgba(20, 10, 40, 0.6);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  border: 1px solid rgba(200, 100, 200, 0.25);
+  transition: all 0.4s ease;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.card:hover {
+  border-color: rgba(217, 70, 239, 0.5);
+  background: rgba(30, 15, 60, 0.75);
+  box-shadow: 
+    0 12px 48px rgba(217, 70, 239, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================
+   BUTTONS - NEON VAPORWAVE
+============================================ */
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.btn-red {
+  background: linear-gradient(135deg, var(--neon-pink), #ff1493);
+  color: white;
+  box-shadow: 0 0 20px rgba(255, 77, 141, 0.4);
+  border: 1px solid rgba(255, 77, 141, 0.6);
+}
+
+.btn-red:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 40px rgba(255, 77, 141, 0.6), 0 8px 16px rgba(255, 77, 141, 0.3);
+  background: linear-gradient(135deg, #ff1493, #ff69b4);
+}
+
+.btn-red:active {
+  transform: translateY(0);
+  box-shadow: 0 0 20px rgba(255, 77, 141, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ============================================
+   ERROR MESSAGES
+============================================ */
+
+.error-msg {
+  background: rgba(255, 77, 141, 0.15);
+  color: #ff9acd;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--neon-pink);
+  margin: 0;
+  font-size: 0.9rem;
+  animation: glitchText 2s infinite;
+}
+
+/* ============================================
+   HEADINGS - GLOWING TEXT
+============================================ */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+h1 {
+  font-size: 2.5rem;
+  background: linear-gradient(90deg, #ffb3f6, #00ffff, #ffb3f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 20px rgba(255, 179, 246, 0.5);
+  animation: floatAnim 6s ease-in-out infinite;
+}
+
+h2 {
+  background: linear-gradient(90deg, #ff4d8d, #00ffff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================
+   LINKS & INTERACTIVE
+============================================ */
+
+a {
+  color: var(--neon-pink);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+a:hover {
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+}
+
+a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--neon-pink), var(--neon-cyan));
+  transition: width 0.3s ease;
+}
+
+a:hover::after {
+  width: 100%;
+}
+
+/* ============================================
+   SCROLLBAR - VAPORWAVE STYLE
+============================================ */
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(10, 10, 26, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--neon-pink), var(--neon-cyan));
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(217, 70, 239, 0.5);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--neon-cyan), var(--neon-pink));
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+}
+
+/* ============================================
+   UTILITY CLASSES
+============================================ */
+
+.glow-text {
+  text-shadow: 0 0 10px currentColor, 0 0 20px rgba(0, 255, 255, 0.5);
+}
+
+.glass {
+  background: rgba(20, 10, 40, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(200, 100, 200, 0.2);
+  border-radius: 12px;
+}
+
+.neon-border {
+  border: 2px solid;
+  border-image: linear-gradient(90deg, var(--neon-pink), var(--neon-cyan)) 1;
+  box-shadow: 0 0 20px rgba(217, 70, 239, 0.3);
+}
+
+.floating {
+  animation: floatAnim 4s ease-in-out infinite;
+}
+
+.pulse-glow {
+  animation: vaporwaveGlow 4s ease-in-out infinite;
+}
+
