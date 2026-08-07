@@ -64,9 +64,9 @@
 .admin-layout {
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0a0a1a 0%, #16213e 25%, #1a0f2e 50%, #2d1b69 100%);
+  background: #000000;
   background-attachment: fixed;
-  color: var(--text);
+  color: #ffffff;
   position: relative;
   overflow: hidden;
 }
@@ -78,10 +78,10 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;;
+  height: 100%;
   background: 
-    radial-gradient(circle at 20% 50%, rgba(217, 70, 239, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(0, 255, 255, 0.08) 0%, transparent 50%);
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 0, 0, 0.08) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
   animation: waveDistortion 8s ease-in-out infinite;
@@ -97,8 +97,8 @@
   height: 100%;
   background: repeating-linear-gradient(
     0deg,
-    rgba(0, 255, 255, 0.03),
-    rgba(0, 255, 255, 0.03) 1px,
+    rgba(255, 255, 255, 0.03),
+    rgba(255, 255, 255, 0.03) 1px,
     transparent 1px,
     transparent 2px
   );
@@ -109,12 +109,12 @@
 
 .sidebar {
   width: 280px;
-  background: rgba(10, 10, 26, 0.85);
+  background: rgba(0, 0, 0, 0.95);
   background-image: 
-    linear-gradient(135deg, rgba(217, 70, 239, 0.15), transparent),
-    linear-gradient(45deg, rgba(0, 255, 255, 0.08), transparent);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent),
+    linear-gradient(45deg, rgba(255, 0, 0, 0.03), transparent);
   border-right: 3px solid;
-  border-image: linear-gradient(180deg, #ff4d8d, #00ffff) 1;
+  border-image: linear-gradient(180deg, #ffffff, #ff0000) 1;
   display: flex;
   flex-direction: column;
   padding: 1.5rem 0;
@@ -125,17 +125,17 @@
   top: 0;
   backdrop-filter: blur(15px);
   box-shadow: 
-    0 0 40px rgba(217, 70, 239, 0.3),
-    0 0 80px rgba(0, 255, 255, 0.15),
-    inset 0 0 40px rgba(217, 70, 239, 0.1);
-  z-index: 102;
+    0 0 40px rgba(255, 255, 255, 0.2),
+    0 0 80px rgba(255, 0, 0, 0.1),
+    inset 0 0 40px rgba(255, 255, 255, 0.05);
+  z-index: 99;
   animation: hologramFlicker 0.15s ease-in-out;
   border-radius: 0 20px 20px 0;
 }
 
 .sidebar-header {
   padding: 0 1.5rem 2rem;
-  border-bottom: 2px solid rgba(217, 70, 239, 0.4);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
   margin-bottom: 1.5rem;
   position: relative;
 }
@@ -147,8 +147,8 @@
   left: 1.5rem;
   right: 1.5rem;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #ff4d8d, transparent);
-  box-shadow: 0 0 10px rgba(255, 77, 141, 0.6);
+  background: linear-gradient(90deg, transparent, #ffffff, transparent);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
 }
 
 .sidebar-header h2 {
@@ -156,17 +156,18 @@
   font-size: 1.3rem;
   font-weight: 700;
   font-family: 'Orbitron', 'Arial Black', sans-serif;
-  animation: chromaShift 3s ease-in-out infinite;
+  color: #ff0000;
+  text-shadow: 0 0 15px #ff0000, 0 0 30px #ffffff;
 }
 
 .sidebar-header p {
   margin: 0.5rem 0 0;
   font-size: 0.75rem;
-  color: var(--text-dim);
+  color: #aaa;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
-  animation: hologramGlow 3s ease-in-out infinite;
+  text-shadow: 0 0 5px #ffffff;
 }
 
 .sidebar-nav {
@@ -184,16 +185,13 @@
   margin: 0 0.5rem 0.75rem;
   font-size: 0.7rem;
   font-weight: 700;
-  color: var(--text-dim);
+  color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 1px;
-  background: linear-gradient(90deg, #ff4d8d, #00ffff);
-  WebkitBackgroundClip: text;
-  WebkitTextFillColor: transparent;
+  color: #ffffff;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid;
-  border-image: linear-gradient(90deg, #ff4d8d, #00ffff) 1;
-  text-shadow: 0 0 10px rgba(255, 77, 141, 0.3);
+  border-bottom: 2px solid #ff0000;
+  text-shadow: 0 0 8px #ffffff;
 }
 
 .nav-item {
@@ -202,7 +200,7 @@
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   border-radius: 12px;
-  color: var(--text-dim);
+  color: #aaa;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 600;
@@ -211,14 +209,14 @@
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   position: relative;
-  background: rgba(217, 70, 239, 0);
+  background: rgba(255, 255, 255, 0);
 }
 
 .nav-item::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(255, 77, 141, 0), rgba(0, 255, 255, 0));
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 0, 0, 0));
   border-radius: 12px;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -226,26 +224,26 @@
 }
 
 .nav-item:hover {
-  background: rgba(217, 70, 239, 0.25);
-  color: var(--text);
-  border-left-color: #ff4d8d;
-  border-right-color: #00ffff;
-  text-shadow: 0 0 12px rgba(255, 77, 141, 0.8);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-left-color: #ffffff;
+  border-right-color: #ff0000;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
   box-shadow: 
-    0 0 15px rgba(255, 77, 141, 0.3),
-    inset 0 0 15px rgba(0, 255, 255, 0.15);
+    0 0 15px rgba(255, 255, 255, 0.3),
+    inset 0 0 15px rgba(255, 255, 255, 0.1);
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, rgba(255, 77, 141, 0.3), rgba(0, 255, 255, 0.2));
-  color: var(--text);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 0, 0, 0.1));
+  color: #ffffff;
   font-weight: 700;
-  border-left-color: #ff4d8d;
-  border-right-color: #00ffff;
+  border-left-color: #ffffff;
+  border-right-color: #ff0000;
   box-shadow: 
-    0 0 20px rgba(255, 77, 141, 0.4),
-    0 0 30px rgba(0, 255, 255, 0.2),
-    inset 0 0 20px rgba(217, 70, 239, 0.2);
+    0 0 20px rgba(255, 255, 255, 0.3),
+    0 0 30px rgba(255, 0, 0, 0.2),
+    inset 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
 .nav-item span {
@@ -254,14 +252,14 @@
   justify-content: center;
   font-size: 1.1rem;
   min-width: 24px;
-  filter: drop-shadow(0 0 6px rgba(255, 77, 141, 0.5));
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
   animation: hologramGlow 3s ease-in-out infinite;
 }
 
 .sidebar-footer {
   padding: 1.5rem;
   border-top: 2px solid;
-  border-image: linear-gradient(90deg, #ff4d8d, #00ffff) 1;
+  border-image: linear-gradient(90deg, #ffffff, #ff0000) 1;
   margin-top: auto;
   position: relative;
 }
@@ -273,8 +271,8 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #ff4d8d, transparent);
-  box-shadow: 0 0 10px rgba(255, 77, 141, 0.6);
+  background: linear-gradient(90deg, transparent, #ffffff, transparent);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
 }
 
 .settings-link {
@@ -283,34 +281,35 @@
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   border-radius: 12px;
-  color: var(--text-dim);
+  color: #aaa;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 600;
   transition: all 0.3s ease;
-  border: 1px solid rgba(0, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .settings-link:hover {
-  background: rgba(0, 255, 255, 0.15);
-  color: var(--text);
-  border-color: #00ffff;
-  text-shadow: 0 0 12px rgba(0, 255, 255, 0.8);
+  background: rgba(255, 0, 0, 0.15);
+  color: #ffffff;
+  border-color: #ff0000;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
   box-shadow: 
-    0 0 15px rgba(0, 255, 255, 0.4),
-    inset 0 0 15px rgba(0, 255, 255, 0.1);
+    0 0 15px rgba(255, 0, 0, 0.4),
+    inset 0 0 15px rgba(255, 255, 255, 0.1);
 }
 
 .admin-main {
   flex: 1;
   margin-left: 280px;
+  margin-top: 80px;
   overflow-y: auto;
-  min-height: 100vh;
+  min-height: calc(100vh - 80px);
   padding: 2rem;
   background: linear-gradient(135deg, 
-    rgba(217, 70, 239, 0.02) 0%, 
+    rgba(255, 255, 255, 0.01) 0%, 
     rgba(0, 0, 0, 0.05) 50%,
-    rgba(0, 255, 255, 0.02) 100%);
+    rgba(255, 0, 0, 0.01) 100%);
   position: relative;
   z-index: 10;
 }
@@ -323,7 +322,7 @@
   left: 10%;
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, rgba(255, 77, 141, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
   border-radius: 50%;
   filter: blur(80px);
   animation: floatingParticle 20s infinite;
@@ -338,7 +337,7 @@
   right: 10%;
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(0, 255, 255, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 0, 0, 0.15) 0%, transparent 70%);
   border-radius: 50%;
   filter: blur(80px);
   animation: floatingParticle 25s infinite;
@@ -353,23 +352,23 @@
 }
 
 .admin-main::-webkit-scrollbar-track {
-  background: rgba(10, 10, 26, 0.5);
+  background: rgba(0, 0, 0, 0.5);
   border-radius: 10px;
 }
 
 .admin-main::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #ff4d8d, #00ffff);
+  background: linear-gradient(180deg, #ffffff, #ff0000);
   border-radius: 10px;
   box-shadow: 
-    0 0 15px rgba(217, 70, 239, 0.6),
-    inset 0 0 5px rgba(0, 255, 255, 0.4);
+    0 0 15px rgba(255, 255, 255, 0.6),
+    inset 0 0 5px rgba(255, 0, 0, 0.4);
 }
 
 .admin-main::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #00ffff, #ff4d8d);
+  background: linear-gradient(180deg, #ff0000, #ffffff);
   box-shadow: 
-    0 0 25px rgba(0, 255, 255, 0.8),
-    inset 0 0 5px rgba(255, 77, 141, 0.4);
+    0 0 25px rgba(255, 0, 0, 0.8),
+    inset 0 0 5px rgba(255, 255, 255, 0.4);
 }
 
 @media (max-width: 1024px) {
@@ -391,14 +390,16 @@
     width: 100%;
     height: auto;
     position: static;
+    margin-top: 80px;
     border-right: none;
     border-bottom: 3px solid;
-    border-image: linear-gradient(90deg, #ff4d8d, #00ffff) 1;
+    border-image: linear-gradient(90deg, #ffffff, #ff0000) 1;
     border-radius: 0 0 20px 20px;
   }
 
   .admin-main {
     margin-left: 0;
+    margin-top: 80px;
     padding: 1rem;
   }
 }
