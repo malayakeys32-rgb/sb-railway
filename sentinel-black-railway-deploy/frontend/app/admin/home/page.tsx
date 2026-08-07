@@ -1,45 +1,19 @@
-"use client";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+\"use client\";
+import { useRouter } from \"next/navigation\";
+import { useEffect, useState } from \"react\";
 
 export default function AdminHome() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const userData = localStorage.getItem("user");
+    const token = localStorage.getItem(\"token\");
+    const userData = localStorage.getItem(\"user\");
     if (!token) {
-      router.push("/admin/login");
+      router.push(\"/admin/login\");
       return;
     }
     if (userData) setUser(JSON.parse(userData));
   }, [router]);
 
-  return (
-    <div style={{ padding: "2rem" }}>
-      <h1 style={{ fontSize: "2rem", fontWeight: 700, marginBottom: "1.5rem" }}>🏠 Home</h1>
-      <div className="card" style={{ border: "1px solid var(--border)", padding: "2rem" }}>
-        <p style={{ fontSize: "1.1rem", marginBottom: "1.5rem" }}>Welcome to Sentinel Black, {user?.name}!</p>
-        <p style={{ color: "var(--text-dim)", lineHeight: 1.6, marginBottom: "2rem" }}>
-          Your command center for mission control, team coordination, and operational intelligence.
-        </p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
-          <a href="/admin/dashboard" style={{ padding: "1rem", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "var(--radius)", textDecoration: "none", color: "var(--text)", textAlign: "center", fontWeight: 600 }}>
-            🎯 Today's Mission
-          </a>
-          <a href="/admin/tasks" style={{ padding: "1rem", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "var(--radius)", textDecoration: "none", color: "var(--text)", textAlign: "center", fontWeight: 600 }}>
-            ✅ Tasks
-          </a>
-          <a href="/admin/team" style={{ padding: "1rem", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "var(--radius)", textDecoration: "none", color: "var(--text)", textAlign: "center", fontWeight: 600 }}>
-            👥 Team
-          </a>
-          <a href="/admin/reports" style={{ padding: "1rem", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: "var(--radius)", textDecoration: "none", color: "var(--text)", textAlign: "center", fontWeight: 600 }}>
-            📊 Reports
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}
-
+  return (\n    <div style={{ padding: \"2rem\" }}>\n      <div className=\"glass-section-heading\">\n        <h1 style={{ margin: 0, fontSize: \"2.5rem\" }}>🏠 Mission Control Center</h1>\n        <p style={{ margin: \"0.5rem 0 0 0\", color: \"var(--text-dim)\", fontSize: \"0.9rem\" }}>Welcome back, {user?.name}</p>\n      </div>\n\n      <div className=\"glass-container\" style={{ marginBottom: \"2rem\" }}>\n        <p style={{ fontSize: \"1.1rem\", marginBottom: \"1.5rem\", color: \"var(--text)\" }}>🌌 Your command center for mission control, team coordination, and operational intelligence.</p>\n        <p style={{ color: \"var(--text-dim)\", lineHeight: 1.8 }}>\n          Navigate through your operations using the sidebar. Access real-time mission data, manage your team, coordinate documents, and track all critical operations from this central hub.\n        </p>\n      </div>\n\n      <div style={{ marginBottom: \"2rem\" }}>\n        <h2 style={{ fontSize: \"1.3rem\", marginBottom: \"1rem\", color: \"#ff4d8d\", textShadow: \"0 0 15px rgba(255, 77, 141, 0.5)\" }}>⚡ Quick Access</h2>\n        <div className=\"glass-grid\">\n          <a href=\"/admin/dashboard\" className=\"glass-card\" style={{ textDecoration: \"none\", color: \"inherit\", cursor: \"pointer\" }}>\n            <div style={{ fontSize: \"2rem\", marginBottom: \"0.5rem\" }}>🎯</div>\n            <h3 style={{ margin: \"0 0 0.5rem 0\", color: \"#ff4d8d\" }}>Today's Mission</h3>\n            <p style={{ margin: 0, fontSize: \"0.9rem\", color: \"var(--text-dim)\" }}>View your active mission and progress</p>\n          </a>\n          <a href=\"/admin/tasks\" className=\"glass-card\" style={{ textDecoration: \"none\", color: \"inherit\", cursor: \"pointer\" }}>\n            <div style={{ fontSize: \"2rem\", marginBottom: \"0.5rem\" }}>✅</div>\n            <h3 style={{ margin: \"0 0 0.5rem 0\", color: \"#00ffff\" }}>Tasks</h3>\n            <p style={{ margin: 0, fontSize: \"0.9rem\", color: \"var(--text-dim)\" }}>Manage and track all tasks</p>\n          </a>\n          <a href=\"/admin/team\" className=\"glass-card\" style={{ textDecoration: \"none\", color: \"inherit\", cursor: \"pointer\" }}>\n            <div style={{ fontSize: \"2rem\", marginBottom: \"0.5rem\" }}>👥</div>\n            <h3 style={{ margin: \"0 0 0.5rem 0\", color: \"#ff4d8d\" }}>Team</h3>\n            <p style={{ margin: 0, fontSize: \"0.9rem\", color: \"var(--text-dim)\" }}>Collaborate with your team members</p>\n          </a>\n          <a href=\"/admin/events\" className=\"glass-card\" style={{ textDecoration: \"none\", color: \"inherit\", cursor: \"pointer\" }}>\n            <div style={{ fontSize: \"2rem\", marginBottom: \"0.5rem\" }}>📅</div>\n            <h3 style={{ margin: \"0 0 0.5rem 0\", color: \"#00ffff\" }}>Events</h3>\n            <p style={{ margin: 0, fontSize: \"0.9rem\", color: \"var(--text-dim)\" }}>Schedule and manage events</p>\n          </a>\n          <a href=\"/admin/reports\" className=\"glass-card\" style={{ textDecoration: \"none\", color: \"inherit\", cursor: \"pointer\" }}>\n            <div style={{ fontSize: \"2rem\", marginBottom: \"0.5rem\" }}>📊</div>\n            <h3 style={{ margin: \"0 0 0.5rem 0\", color: \"#ff4d8d\" }}>Reports</h3>\n            <p style={{ margin: 0, fontSize: \"0.9rem\", color: \"var(--text-dim)\" }}>View analytics and reports</p>\n          </a>\n          <a href=\"/admin/documents\" className=\"glass-card\" style={{ textDecoration: \"none\", color: \"inherit\", cursor: \"pointer\" }}>\n            <div style={{ fontSize: \"2rem\", marginBottom: \"0.5rem\" }}>📂</div>\n            <h3 style={{ margin: \"0 0 0.5rem 0\", color: \"#00ffff\" }}>Documents</h3>\n            <p style={{ margin: 0, fontSize: \"0.9rem\", color: \"var(--text-dim)\" }}>Access shared documents</p>\n          </a>\n        </div>\n      </div>\n\n      <div className=\"glass-container\" style={{ textAlign: \"center\", paddingTop: \"2rem\", paddingBottom: \"2rem\" }}>\n        <h3 style={{ margin: \"0 0 1rem 0\", color: \"#00ffff\", fontSize: \"1.2rem\" }}>🚀 Ready to Start?</h3>\n        <p style={{ margin: \"0 0 1.5rem 0\", color: \"var(--text-dim)\" }}>Use the sidebar menu to navigate to any section</p>\n        <a href=\"/admin/dashboard\" className=\"glass-button primary\" style={{ marginRight: \"1rem\" }}>Go to Dashboard →</a>\n      </div>\n    </div>\n  );\n}\n
