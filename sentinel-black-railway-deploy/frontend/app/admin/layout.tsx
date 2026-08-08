@@ -1,16 +1,94 @@
-\"use client\";
-import type { ReactNode } from \"react\";
-import { useEffect, useState } from \"react\";
-import { useRouter, usePathname } from \"next/navigation\";
-import \"./admin-layout.css\";
-import \"./glass-effects.css\";
+"use client";
+import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { ThemeProvider } from "@/app/theme-context";
+import "./admin-layout.css";
+import "./glass-effects.css";
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+function AdminLayoutContent({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isActive, setIsActive] = useState<string>(\"\");
+  const [isActive, setIsActive] = useState<string>("");
 
   useEffect(() => {
-    const token = localStorage.getItem(\"token\");
-    // Allow access to login page without token
-    if (!token && !pathname.includes(\"/admin/login\")) {\n      router.push(\"/admin/login\");\n    }\n  }, [router, pathname]);\n\n  // Determine which nav item should be active\n  useEffect(() => {\n    setIsActive(pathname);\n  }, [pathname]);\n\n  return (\n    <div className=\"admin-layout\">\n      <aside className=\"sidebar\">\n        <div className=\"sidebar-header\">\n          <h2 style={{\n            background: \"linear-gradient(90deg, #ff4d8d, #00ffff)\",\n            WebkitBackgroundClip: \"text\",\n            WebkitTextFillColor: \"transparent\",\n            margin: 0,\n          }}>\n            🔴 Sentinel\n          </h2>\n          <p>Mission Control</p>\n        </div>\n\n        <nav className=\"sidebar-nav\">\n          <div className=\"nav-section\">\n            <h3>Operations</h3>\n            <a href=\"/admin/home\" className={`nav-item ${isActive === '/admin/home' ? 'active' : ''}`}>\n              <span>🏠</span> Home\n            </a>\n            <a href=\"/admin/dashboard\" className={`nav-item ${isActive === '/admin/dashboard' ? 'active' : ''}`}>\n              <span>🎯</span> Today's Mission\n            </a>\n            <a href=\"/admin/events\" className={`nav-item ${isActive === '/admin/events' ? 'active' : ''}`}>\n              <span>📅</span> My Events\n            </a>\n            <a href=\"/admin/tasks\" className={`nav-item ${isActive === '/admin/tasks' ? 'active' : ''}`}>\n              <span>✅</span> Tasks\n            </a>\n            <a href=\"/admin/mission-log\" className={`nav-item ${isActive === '/admin/mission-log' ? 'active' : ''}`}>\n              <span>📔</span> Mission Log\n            </a>\n          </div>\n\n          <div className=\"nav-section\">\n            <h3>Collaboration</h3>\n            <a href=\"/admin/team\" className={`nav-item ${isActive === '/admin/team' ? 'active' : ''}`}>\n              <span>👥</span> Team\n            </a>\n            <a href=\"/admin/documents\" className={`nav-item ${isActive === '/admin/documents' ? 'active' : ''}`}>\n              <span>📂</span> Documents\n            </a>\n            <a href=\"/admin/forms\" className={`nav-item ${isActive === '/admin/forms' ? 'active' : ''}`}>\n              <span>📋</span> Forms\n            </a>\n          </div>\n\n          <div className=\"nav-section\">\n            <h3>Analytics</h3>\n            <a href=\"/admin/reports\" className={`nav-item ${isActive === '/admin/reports' ? 'active' : ''}`}>\n              <span>📊</span> Reports\n            </a>\n            <a href=\"/admin/ai-assistant\" className={`nav-item ${isActive === '/admin/ai-assistant' ? 'active' : ''}`}>\n              <span>🤖</span> AI Assistant\n            </a>\n          </div>\n\n          <div className=\"nav-section\">\n            <h3>Legacy</h3>\n            <a href=\"/dashboard\" className={`nav-item ${isActive === '/dashboard' ? 'active' : ''}`}>\n              <span>🔍</span> Incident Tracker\n            </a>\n            <a href=\"/evidence\" className={`nav-item ${isActive === '/evidence' ? 'active' : ''}`}>\n              <span>📸</span> Evidence\n            </a>\n            <a href=\"/patterns\" className={`nav-item ${isActive === '/patterns' ? 'active' : ''}`}>\n              <span>🔗</span> Patterns\n            </a>\n          </div>\n        </nav>\n\n        <div className=\"sidebar-footer\">\n          <a href=\"#\" className=\"settings-link\">⚙️ Settings</a>\n        </div>\n      </aside>\n\n      <main className=\"admin-main\">\n        {children}\n      </main>\n    </div>\n  );\n}\n
+    const token = localStorage.getItem("token");
+    if (!token && !pathname.includes("/admin/login")) {
+      router.push("/admin/login");
+    }
+  }, [router, pathname]);
+
+  useEffect(() => {
+    setIsActive(pathname);
+  }, [pathname]);
+
+  return (
+    <div className="admin-layout">
+      <aside className="sidebar">
+        <div className="sidebar-header">
+          <h2 style={{
+            color: "#ff0000",
+            textShadow: "0 0 15px #ff0000, 0 0 30px #ffffff",
+            margin: 0,
+          }}>
+            🔴 Sentinel Black
+          </h2>
+          <p>Command Center</p>
+        </div>
+
+        <nav className="sidebar-nav">
+          <div className="nav-section">
+            <h3>Operations</h3>
+            <a href="/admin/home" className={`nav-item ${isActive === '/admin/home' ? 'active' : ''}`}>
+              <span>🏠</span> Home
+            </a>
+            <a href="/admin/dashboard" className={`nav-item ${isActive === '/admin/dashboard' ? 'active' : ''}`}>
+              <span>🎯</span> Dashboard
+            </a>
+            <a href="/admin/events" className={`nav-item ${isActive === '/admin/events' ? 'active' : ''}`}>
+              <span>📅</span> Events
+            </a>
+            <a href="/admin/tasks" className={`nav-item ${isActive === '/admin/tasks' ? 'active' : ''}`}>
+              <span>✅</span> Tasks
+            </a>
+          </div>
+
+          <div className="nav-section">
+            <h3>Collaboration</h3>
+            <a href="/admin/team" className={`nav-item ${isActive === '/admin/team' ? 'active' : ''}`}>
+              <span>👥</span> Team
+            </a>
+            <a href="/admin/documents" className={`nav-item ${isActive === '/admin/documents' ? 'active' : ''}`}>
+              <span>📂</span> Documents
+            </a>
+          </div>
+
+          <div className="nav-section">
+            <h3>Analytics</h3>
+            <a href="/admin/reports" className={`nav-item ${isActive === '/admin/reports' ? 'active' : ''}`}>
+              <span>📊</span> Reports
+            </a>
+          </div>
+        </nav>
+
+        <div className="sidebar-footer">
+          <a href="/admin/settings" className={`settings-link ${isActive === '/admin/settings' ? 'active' : ''}`}>⚙️ Settings</a>
+          <a href="/admin/login" className="settings-link" style={{ marginTop: "0.5rem" }}>🚪 Logout</a>
+        </div>
+      </aside>
+
+      <main className="admin-main">
+        {children}
+      </main>
+    </div>
+  );
+}
+
+export default function AdminLayout({ children }: { children: ReactNode }) {
+  return (
+    <ThemeProvider>
+      <AdminLayoutContent>{children}</AdminLayoutContent>
+    </ThemeProvider>
+  );
+}
+
