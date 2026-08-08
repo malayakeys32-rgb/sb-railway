@@ -71,7 +71,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.style.setProperty("--primary-color", t.primaryColor);
 
     if (t.backgroundImage) {
-      document.body.style.backgroundImage = `url('${t.backgroundImage}')`;
+      document.body.style.backgroundImage = "url('" + t.backgroundImage + "')";
       document.body.style.backgroundSize = "cover";
       document.body.style.backgroundAttachment = "fixed";
     } else {
@@ -95,4 +95,3 @@ export function useTheme() {
   }
   return context;
 }
-
