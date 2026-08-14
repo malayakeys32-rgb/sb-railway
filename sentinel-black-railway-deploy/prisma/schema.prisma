@@ -25,6 +25,8 @@ model User {
   missionLogs     MissionLog[]
   teamAssignments TeamMember[]
   cases           Case[]
+  agents          Agent[]
+  threatMonitors  ThreatMonitor[]
 
   @@map("users")
 }
@@ -68,6 +70,8 @@ model Evidence {
   uploader        User            @relation(fields: [uploaderId], references: [id])
   incidentId      String?
   incident        Incident?       @relation(fields: [incidentId], references: [id])
+  caseId          String?
+  case            Case?           @relation(fields: [caseId], references: [id])
   sharedLinks     SharedLink[]
 
   @@map("evidence")
@@ -233,22 +237,122 @@ model ReadinessScore {
 }
 
 model Case {
-  id          String      @id @default(cuid())
-  title       String
-  description String
-  category    CaseCategory
-  status      CaseStatus  @default(OPEN)
-  severity    CaseSeverity @default(LOW)
-  location    String
-  ownerUserId String
-  owner       User        @relation(fields: [ownerUserId], references: [id])
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id            String        @id @default(cuid())
+  caseNumber    String?       @unique
+  title         String
+  description   String
+  category      CaseCategory
+  status        CaseStatus    @default(OPEN)
+  severity      CaseSeverity  @default(LOW)
+  location      String
+  ownerUserId   String
+  owner         User          @relation(fields: [ownerUserId], references: [id])
+  evidence      Evidence[]
+  agents        Agent[]
+  threats       CaseThreat[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   @@index([ownerUserId])
   @@index([status])
   @@index([category])
   @@map("cases")
+}
+
+model Agent {
+  id              String        @id @default(cuid())
+  agentId         String        @unique
+  name            String
+  status          AgentStatus   @default(ACTIVE)
+  specialization  String?
+  clearanceLevel  ClearanceLevel @default(LEVEL_3)
+  caseId          String?
+  case            Case?         @relation(fields: [caseId], references: [id])
+  userId          String?
+  user            User?         @relation(fields: [userId], references: [id])
+  assignedAt      DateTime      @default(now())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("agents")
+}
+
+model Threat {
+  id          String          @id @default(cuid())
+  threatId    String          @unique
+  name        String
+  description String
+  threatType  ThreatType
+  severity    ThreatSeverity  @default(LOW)
+  status      ThreatStatus    @default(DETECTED)
+  intel       String?
+  source      String?
+  cases       CaseThreat[]
+  logs        SystemLog[]
+  detectedAt  DateTime        @default(now())
+  resolvedAt  DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("threats")
+}
+
+model CaseThreat {
+  id        String   @id @default(cuid())
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  threatId  String
+  threat    Threat   @relation(fields: [threatId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([caseId, threatId])
+  @@map("case_threats")
+}
+
+model SystemLog {
+  id          String       @id @default(cuid())
+  logType     SystemLogType
+  component   String
+  message     String
+  severity    LogSeverity  @default(INFO)
+  threatId    String?
+  threat      Threat?      @relation(fields: [threatId], references: [id])
+  metadata    Json?
+  stackTrace  String?
+  createdAt   DateTime     @default(now())
+
+  @@index([logType])
+  @@index([severity])
+  @@index([threatId])
+  @@map("system_logs")
+}
+
+model ThreatMonitor {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  monitorType MonitorType
+  threshold   Int?
+  isActive    Boolean     @default(true)
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  alertRules  AlertRule[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("threat_monitors")
+}
+
+model AlertRule {
+  id        String         @id @default(cuid())
+  monitorId String
+  monitor   ThreatMonitor  @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+  condition String
+  action    String
+  isEnabled Boolean        @default(true)
+  createdAt DateTime       @default(now())
+
+  @@map("alert_rules")
 }
 
 enum Role {
@@ -319,5 +423,69 @@ enum CaseSeverity {
   MEDIUM
   HIGH
   CRITICAL
+}
+
+enum AgentStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+  DEPLOYED
+}
+
+enum ClearanceLevel {
+  LEVEL_1
+  LEVEL_2
+  LEVEL_3
+  LEVEL_4
+  LEVEL_5
+}
+
+enum ThreatType {
+  MALWARE
+  INTRUSION
+  DDoS
+  DATA_BREACH
+  SOCIAL_ENGINEERING
+  CONFIGURATION
+  UNKNOWN
+}
+
+enum ThreatSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ThreatStatus {
+  DETECTED
+  ANALYZING
+  CONFIRMED
+  MITIGATING
+  RESOLVED
+  CLOSED
+}
+
+enum SystemLogType {
+  ERROR
+  WARNING
+  INFO
+  DEBUG
+  SECURITY
+  AUDIT
+}
+
+enum LogSeverity {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+
+enum MonitorType {
+  TRAFFIC
+  THREAT
+  PERFORMANCE
+  SECURITY
 }
 
