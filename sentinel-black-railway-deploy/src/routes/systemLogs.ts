@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
-import { adminAuth } from "../middleware/adminAuth";
+import { PrismaClient, LogSeverity } from "@prisma/client";
+import adminAuth from "../middleware/adminAuth";
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -11,7 +11,9 @@ router.get("/", adminAuth, async (req: Request, res: Response) => {
     const { limit = 100, severity, logType, threatId } = req.query;
 
     const where: any = {};
-    if (severity) where.severity = severity;
+    if (severity && ["INFO", "WARNING", "ERROR", "CRITICAL"].includes(severity as string)) {
+      where.severity = severity as LogSeverity;
+    }
     if (logType) where.logType = logType;
     if (threatId) where.threatId = threatId;
 
@@ -64,7 +66,7 @@ router.post("/", async (req: Request, res: Response) => {
         logType,
         component,
         message,
-        severity: severity || "INFO",
+        severity: (severity || "INFO") as LogSeverity,
         threatId: threatId || undefined,
         metadata: metadata || undefined,
         stackTrace: stackTrace || undefined,
@@ -85,8 +87,12 @@ router.get("/by-severity/:severity", adminAuth, async (req: Request, res: Respon
     const { severity } = req.params;
     const { limit = 100 } = req.query;
 
+    if (!["INFO", "WARNING", "ERROR", "CRITICAL"].includes(severity)) {
+      return res.status(400).json({ message: "Invalid severity" });
+    }
+
     const logs = await prisma.systemLog.findMany({
-      where: { severity },
+      where: { severity: severity as LogSeverity },
       include: { threat: true },
       orderBy: { createdAt: "desc" },
       take: Math.min(parseInt(limit as string) || 100, 500),
@@ -120,3 +126,4 @@ router.get("/by-component/:component", adminAuth, async (req: Request, res: Resp
 });
 
 export default router;
+
