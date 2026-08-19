@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel Black Dashboard</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/sentinel-black.css">
+
+    <!-- JS -->
+    <script defer src="js/dashboard.js"></script>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="sb-header">
+        <h1 class="sb-title">Sentinel Black — Log Extraction Console</h1>
+    </header>
+
+    <!-- SIDEBAR -->
+    <aside class="sb-sidebar">
+        <ul>
+            <li class="active">Dashboard</li>
+            <li>Extraction</li>
+            <li>Events</li>
+            <li>System</li>
+            <li>Settings</li>
+        </ul>
+    </aside>
+
+    <!-- MAIN PANEL -->
+    <main class="sb-main">
+
+        <!-- SECTION TITLE -->
+        <h2 class="sb-section-title">Log Extraction</h2>
+
+        <!-- STATIC EVENTS -->
+        <div class="sb-event">
+            <h3 class="sb-event-title">Event #001 — System Boot</h3>
+            <p class="sb-event-body">
+                System initialized. All modules online. Monitoring active.
+            </p>
+        </div>
+
+        <div class="sb-event">
+            <h3 class="sb-event-title">Event #002 — User Authentication</h3>
+            <p class="sb-event-body">
+                User credentials verified. Access level: Administrator.
+            </p>
+        </div>
+
+        <div class="sb-event">
+            <h3 class="sb-event-title">Event #003 — Log Stream</h3>
+            <p class="sb-event-body">
+                Live log stream connected. Awaiting new entries…
+            </p>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="sb-actions">
+            <button id="extractBtn">Extract Logs</button>
+            <button id="refreshBtn">Refresh</button>
+            <button id="clearBtn">Clear Logs</button>
+        </div>
+
+        <!-- ⭐ LIVE LOG STREAM GOES HERE -->
+        <div id="liveLogStream"></div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="sb-footer">
+        <p>Sentinel Black — Railway Deployment</p>
+    </footer>
+
+</body>
+</html>

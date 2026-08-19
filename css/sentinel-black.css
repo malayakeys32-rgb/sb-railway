@@ -1,0 +1,119 @@
+/* GLOBAL */
+body {
+    margin: 0;
+    padding: 0;
+    background: #0b0b0d;
+    color: #e6e6e6;
+    font-family: Arial, sans-serif;
+
+    display: grid;
+    grid-template-columns: 240px auto;
+    grid-template-rows: 80px auto 60px;
+    height: 100vh;
+}
+
+/* HEADER */
+.sb-header {
+    grid-column: 1 / span 2;
+    background: #111114;
+    border-bottom: 2px solid #00e0ff;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.sb-title {
+    font-size: 22px;
+    color: #00e0ff;
+    font-weight: bold;
+}
+
+/* SIDEBAR */
+.sb-sidebar {
+    background: #0f0f12;
+    border-right: 2px solid #00e0ff;
+    padding: 20px;
+}
+
+.sb-sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sb-sidebar ul li {
+    padding: 12px 0;
+    font-size: 16px;
+    cursor: pointer;
+    color: #bfbfbf;
+}
+
+.sb-sidebar ul li.active {
+    color: #00e0ff;
+    font-weight: bold;
+}
+
+/* MAIN PANEL */
+.sb-main {
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.sb-section-title {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: #00e0ff;
+}
+
+/* EVENTS */
+.sb-event {
+    background: #141418;
+    border-left: 4px solid #00e0ff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.sb-event-title {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #00e0ff;
+}
+
+.sb-event-body {
+    font-size: 14px;
+    color: #d0d0d0;
+}
+
+/* FOOTER */
+.sb-footer {
+    grid-column: 1 / span 2;
+    background: #111114;
+    border-top: 2px solid #00e0ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #bfbfbf;
+}
+.sb-controls button {
+    background: #111114;
+    border: 2px solid #00e0ff;
+    color: #00e0ff;
+    padding: 10px 18px;
+    margin-right: 10px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.sb-controls button:hover {
+    background: #00e0ff;
+    color: #0b0b0d;
+}
+#liveLogStream .sb-event {
+    background: #141418;
+    border-left: 4px solid #00e0ff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
